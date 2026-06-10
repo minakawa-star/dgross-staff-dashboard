@@ -121,8 +121,12 @@ async function uploadAtt() {
     if (file.name.endsWith(".zip")) {
       const buf = await file.arrayBuffer();
       const zip = await JSZip.loadAsync(buf);
-      const csvFile = Object.values(zip.files).find(f => f.name.endsWith(".csv"));
-      if (!csvFile) throw new Error("ZIP内にCSVファイルが見つかりません");
+      const allFiles = Object.values(zip.files);
+      const csvFile = allFiles.find(f => !f.dir && f.name.endsWith(".csv"));
+      if (!csvFile) {
+        const fileList = allFiles.map(f => f.name).join(", ");
+        throw new Error("ZIP内ファイル一覧: " + fileList);
+      }
       csvText = await csvFile.async("string");
     } else {
       csvText = await file.text();

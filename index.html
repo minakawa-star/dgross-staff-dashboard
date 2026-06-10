@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PT事業部 スタッフ実績管理</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #0f0f13; color: #e2e2e8; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 14px; }
+
+  /* ヘッダー */
+  .header { background: #16161e; border-bottom: 1px solid #2a2a35; padding: 0 24px; height: 56px; display: flex; align-items: center; gap: 24px; position: sticky; top: 0; z-index: 100; }
+  .header-title { font-size: 15px; font-weight: 600; color: #fff; white-space: nowrap; }
+  .header-divider { width: 1px; height: 20px; background: #2a2a35; }
+  .header-controls { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+
+  select, input[type="month"] {
+    background: #1e1e28; border: 1px solid #2a2a35; color: #e2e2e8;
+    padding: 6px 10px; border-radius: 6px; font-size: 13px; cursor: pointer;
+    outline: none;
+  }
+  select:hover, input[type="month"]:hover { border-color: #4a4a5a; }
+
+  /* アップロードセクション */
+  .upload-section { background: #16161e; border-bottom: 1px solid #2a2a35; padding: 12px 24px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  .upload-item { display: flex; align-items: center; gap: 8px; }
+  .upload-label { font-size: 12px; color: #888; white-space: nowrap; }
+  .upload-input { display: none; }
+  .upload-btn { background: #1e1e28; border: 1px solid #2a2a35; color: #e2e2e8; padding: 5px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; white-space: nowrap; }
+  .upload-btn:hover { border-color: #4a4a5a; }
+  .upload-filename { font-size: 12px; color: #5a9cf8; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .update-btn { background: #5a9cf8; border: none; color: #fff; padding: 6px 16px; border-radius: 6px; font-size: 13px; cursor: pointer; font-weight: 500; white-space: nowrap; margin-left: 8px; }
+  .update-btn:hover { background: #4a8ce8; }
+  .update-btn:disabled { background: #2a2a35; color: #666; cursor: not-allowed; }
+  .status-msg { font-size: 12px; color: #888; }
+
+  /* サマリーバー */
+  .summary-bar { padding: 12px 24px; display: flex; gap: 24px; border-bottom: 1px solid #2a2a35; }
+  .summary-item { display: flex; flex-direction: column; gap: 2px; }
+  .summary-label { font-size: 11px; color: #666; }
+  .summary-value { font-size: 18px; font-weight: 600; color: #fff; }
+
+  /* テーブル */
+  .table-wrap { padding: 16px 24px; overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; }
+  th { background: #16161e; color: #888; font-size: 11px; font-weight: 500; text-align: left; padding: 8px 12px; border-bottom: 1px solid #2a2a35; white-space: nowrap; cursor: pointer; user-select: none; }
+  th:hover { color: #e2e2e8; }
+  td { padding: 10px 12px; border-bottom: 1px solid #1e1e28; white-space: nowrap; font-size: 13px; }
+  tr:hover td { background: #1a1a24; }
+
+  /* 達成率バー */
+  .rate-cell { display: flex; align-items: center; gap: 8px; }
+  .rate-bar-bg { width: 80px; height: 4px; background: #2a2a35; border-radius: 2px; overflow: hidden; }
+  .rate-bar { height: 100%; border-radius: 2px; transition: width 0.3s; }
+  .rate-text { font-size: 13px; font-weight: 500; min-width: 45px; }
+
+  /* ランクバッジ */
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 500; }
+  .badge-top { background: #2d1f5e; color: #a78bfa; }
+  .badge-middle { background: #1f3a5e; color: #60a5fa; }
+  .badge-rookie-plus { background: #1f4a3a; color: #34d399; }
+  .badge-rookie { background: #1a2a1a; color: #6ee7b7; }
+  .badge-manager { background: #3a2a1a; color: #fbbf24; }
+  .badge-staff { background: #2a2a2a; color: #9ca3af; }
+
+  /* 月給制 */
+  .monthly-tag { font-size: 10px; color: #888; background: #2a2a35; padding: 1px 5px; border-radius: 3px; margin-left: 4px; }
+
+  /* ローディング */
+  .loading { text-align: center; padding: 60px; color: #666; }
+
+  /* 数値 */
+  .num { font-variant-numeric: tabular-nums; }
+  .num-green { color: #34d399; }
+  .num-yellow { color: #fbbf24; }
+  .num-red { color: #f87171; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-title">PT事業部 実績管理</div>
+  <div class="header-divider"></div>
+  <div class="header-controls">
+    <input type="month" id="month-select" value="2026-06">
+    <select id="site-filter">
+      <option value="">全サイト</option>
+      <option value="新宿SC">新宿SC</option>
+      <option value="六本木SC">六本木SC</option>
+      <option value="リモートSC">リモートSC</option>
+      <option value="在宅G">在宅G</option>
+      <option value="AI">AI</option>
+    </select>
+    <select id="rank-filter">
+      <option value="">全ランク</option>
+      <option value="トップ">トップ</option>
+      <option value="ミドル">ミドル</option>
+      <option value="ルーキープラス">ルーキープラス</option>
+      <option value="ルーキー">ルーキー</option>
+      <option value="管理者">管理者</option>
+      <option value="社員">社員</option>
+    </select>
+  </div>
+</div>
+
+<div class="upload-section">
+  <div class="upload-item">
+    <span class="upload-label">① アポリスト</span>
+    <label class="upload-btn">ファイル選択<input class="upload-input" type="file" id="apo-file" accept=".xlsx"></label>
+    <span class="upload-filename" id="apo-name">未選択</span>
+  </div>
+  <div class="upload-item">
+    <span class="upload-label">② 生産性</span>
+    <label class="upload-btn">ファイル選択<input class="upload-input" type="file" id="prod-file" accept=".csv"></label>
+    <span class="upload-filename" id="prod-name">未選択</span>
+  </div>
+  <div class="upload-item">
+    <span class="upload-label">③ jinjer</span>
+    <label class="upload-btn">ファイル選択<input class="upload-input" type="file" id="att-file" accept=".csv,.zip"></label>
+    <span class="upload-filename" id="att-name">未選択</span>
+  </div>
+  <button class="update-btn" id="update-btn" onclick="uploadAll()">データ更新</button>
+  <span class="status-msg" id="status-msg"></span>
+</div>
+
+<div class="summary-bar" id="summary-bar"></div>
+
+<div class="table-wrap">
+  <div class="loading" id="loading">データを読み込み中...</div>
+  <table id="main-table" style="display:none">
+    <thead>
+      <tr>
+        <th onclick="sortTable('name')">スタッフ名</th>
+        <th onclick="sortTable('rank')">ランク</th>
+        <th onclick="sortTable('site')">サイト</th>
+        <th onclick="sortTable('sales')">売上</th>
+        <th onclick="sortTable('apo_amount')">アポ取得</th>
+        <th onclick="sortTable('cxl_amount')">CXL</th>
+        <th onclick="sortTable('fb_amount')">FB</th>
+        <th onclick="sortTable('target_achieve')">達成目標</th>
+        <th onclick="sortTable('target_maintain')">維持目標</th>
+        <th onclick="sortTable('achieve_rate')">達成率</th>
+        <th onclick="sortTable('work_days')">出勤日数</th>
+      </tr>
+    </thead>
+    <tbody id="table-body"></tbody>
+  </table>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+<script>
+const BASE_URL = "https://digross-server.onrender.com";
+let allData = [];
+let sortKey = "achieve_rate";
+let sortDir = -1;
+
+// Renderウォームアップ
+fetch(BASE_URL + "/health_staff").catch(() => {});
+
+// ファイル選択表示
+document.getElementById("apo-file").addEventListener("change", e => {
+  document.getElementById("apo-name").textContent = e.target.files[0]?.name || "未選択";
+});
+document.getElementById("prod-file").addEventListener("change", e => {
+  document.getElementById("prod-name").textContent = e.target.files[0]?.name || "未選択";
+});
+document.getElementById("att-file").addEventListener("change", e => {
+  document.getElementById("att-name").textContent = e.target.files[0]?.name || "未選択";
+});
+
+// フィルター変更
+document.getElementById("month-select").addEventListener("change", loadData);
+document.getElementById("site-filter").addEventListener("change", renderTable);
+document.getElementById("rank-filter").addEventListener("change", renderTable);
+
+// データ読み込み
+async function loadData() {
+  const month = document.getElementById("month-select").value;
+  document.getElementById("loading").style.display = "block";
+  document.getElementById("main-table").style.display = "none";
+  try {
+    const res = await fetch(`${BASE_URL}/staff/summary?month=${month}`);
+    const data = await res.json();
+    allData = data.data || [];
+    renderTable();
+  } catch(e) {
+    document.getElementById("loading").textContent = "読み込みエラー: " + e.message;
+  }
+}
+
+function getFilteredData() {
+  const site = document.getElementById("site-filter").value;
+  const rank = document.getElementById("rank-filter").value;
+  return allData.filter(d => {
+    if (site && d.site !== site) return false;
+    if (rank && d.rank !== rank) return false;
+    return true;
+  });
+}
+
+function renderTable() {
+  const data = getFilteredData();
+  data.sort((a, b) => {
+    const av = a[sortKey] ?? -1;
+    const bv = b[sortKey] ?? -1;
+    if (typeof av === "string") return sortDir * av.localeCompare(bv);
+    return sortDir * (av - bv);
+  });
+
+  renderSummary(data);
+
+  const tbody = document.getElementById("table-body");
+  tbody.innerHTML = data.map(d => {
+    const rate = d.achieve_rate ?? 0;
+    const rateColor = rate >= 100 ? "num-green" : rate >= 80 ? "num-yellow" : "num-red";
+    const barColor = rate >= 100 ? "#34d399" : rate >= 80 ? "#fbbf24" : "#f87171";
+    const barWidth = Math.min(rate, 150);
+    const rankBadge = getRankBadge(d.rank);
+    const monthlyTag = d.is_monthly ? '<span class="monthly-tag">月給</span>' : "";
+    const remain = d.target_achieve > 0 ? d.target_achieve - d.sales : null;
+
+    return `<tr>
+      <td>${d.name}${monthlyTag}</td>
+      <td><span class="badge ${rankBadge.cls}">${rankBadge.label}</span></td>
+      <td>${d.site}</td>
+      <td class="num">${fmt(d.sales)}</td>
+      <td class="num">${fmt(d.apo_amount)}</td>
+      <td class="num">${d.cxl_amount > 0 ? '<span class="num-red">▲' + fmt(d.cxl_amount) + '</span>' : '-'}</td>
+      <td class="num">${d.fb_amount > 0 ? fmt(d.fb_amount) : '-'}</td>
+      <td class="num">${d.target_achieve > 0 ? fmt(d.target_achieve) : '-'}</td>
+      <td class="num">${d.target_maintain > 0 ? fmt(d.target_maintain) : '-'}</td>
+      <td>
+        <div class="rate-cell">
+          <div class="rate-bar-bg"><div class="rate-bar" style="width:${barWidth}%;background:${barColor}"></div></div>
+          <span class="rate-text ${rateColor}">${d.achieve_rate != null ? d.achieve_rate + '%' : '-'}</span>
+        </div>
+      </td>
+      <td class="num">${d.work_days}日</td>
+    </tr>`;
+  }).join("");
+
+  document.getElementById("loading").style.display = "none";
+  document.getElementById("main-table").style.display = "table";
+}
+
+function renderSummary(data) {
+  const totalSales = data.reduce((s, d) => s + d.sales, 0);
+  const totalApo = data.reduce((s, d) => s + d.apo_amount, 0);
+  const totalCxl = data.reduce((s, d) => s + d.cxl_amount, 0);
+  const totalFb = data.reduce((s, d) => s + d.fb_amount, 0);
+  const over100 = data.filter(d => d.achieve_rate >= 100).length;
+  const active = data.filter(d => d.work_days > 0).length;
+
+  document.getElementById("summary-bar").innerHTML = `
+    <div class="summary-item"><span class="summary-label">総売上</span><span class="summary-value">${fmt(totalSales)}</span></div>
+    <div class="summary-item"><span class="summary-label">アポ取得</span><span class="summary-value">${fmt(totalApo)}</span></div>
+    <div class="summary-item"><span class="summary-label">CXL</span><span class="summary-value" style="color:#f87171">▲${fmt(totalCxl)}</span></div>
+    <div class="summary-item"><span class="summary-label">FB</span><span class="summary-value" style="color:#60a5fa">${fmt(totalFb)}</span></div>
+    <div class="summary-item"><span class="summary-label">達成者数</span><span class="summary-value" style="color:#34d399">${over100}名</span></div>
+    <div class="summary-item"><span class="summary-label">稼働人数</span><span class="summary-value">${active}名</span></div>
+  `;
+}
+
+function sortTable(key) {
+  if (sortKey === key) sortDir *= -1;
+  else { sortKey = key; sortDir = -1; }
+  renderTable();
+}
+
+function getRankBadge(rank) {
+  const map = {
+    "トップ": { cls: "badge-top", label: "トップ" },
+    "ミドル": { cls: "badge-middle", label: "ミドル" },
+    "ルーキープラス": { cls: "badge-rookie-plus", label: "R+" },
+    "ルーキー": { cls: "badge-rookie", label: "ルーキー" },
+    "管理者": { cls: "badge-manager", label: "管理者" },
+    "社員": { cls: "badge-staff", label: "社員" },
+  };
+  return map[rank] || { cls: "badge-staff", label: rank };
+}
+
+function fmt(n) {
+  if (n == null) return "-";
+  return "¥" + n.toLocaleString();
+}
+
+// アップロード処理
+async function uploadAll() {
+  const btn = document.getElementById("update-btn");
+  const msg = document.getElementById("status-msg");
+  btn.disabled = true;
+  msg.textContent = "アップロード中...";
+
+  try {
+    const apoFile = document.getElementById("apo-file").files[0];
+    const prodFile = document.getElementById("prod-file").files[0];
+    const attFile = document.getElementById("att-file").files[0];
+
+    if (apoFile) {
+      msg.textContent = "① アポリスト処理中...";
+      await uploadApo(apoFile);
+    }
+    if (prodFile) {
+      msg.textContent = "② 生産性レポート処理中...";
+      await uploadProd(prodFile);
+    }
+    if (attFile) {
+      msg.textContent = "③ jinjer処理中...";
+      await uploadAtt(attFile);
+    }
+
+    msg.textContent = "✅ 更新完了";
+    await loadData();
+  } catch(e) {
+    msg.textContent = "❌ エラー: " + e.message;
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function uploadApo(file) {
+  const buf = await file.arrayBuffer();
+  const wb = XLSX.read(buf, { type: "array", cellDates: true });
+  const ws = wb.Sheets[wb.SheetNames[0]];
+  const rows = XLSX.utils.sheet_to_json(ws, { raw: false, dateNF: "yyyy/mm/dd" });
+  const rawRecords = rows.map(r => ({
+    appointment_id: String(r["アポイントID"] || "").trim(),
+    staff_id: String(r["社員番号"] || "").trim(),
+    acquired_date: r["取得日"] ? formatDate(r["取得日"]) : null,
+    amount: parseInt(String(r["案件金額"] || "0").replace(/,/g, "")) || 0,
+    cancel_date: String(r["キャンセル受付日"] || "").trim() || null,
+    fb_date: r["フィードバック受付日"] ? formatDate(r["フィードバック受付日"]) : null,
+    fb_amount: parseInt(String(r["達成金額"] || "0").replace(/,/g, "")) || 0,
+  })).filter(r => r.staff_id);
+  const seen = new Set();
+  const records = rawRecords.filter(r => {
+    const key = r.appointment_id || `${r.staff_id}_${r.acquired_date}_${r.amount}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+  const res = await fetch(`${BASE_URL}/staff/upload/appointments_json`, {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ records })
+  });
+  const data = await res.json();
+  if (data.error) throw new Error(data.error);
+}
+
+async function uploadProd(file) {
+  const text = await file.text();
+  const rows = parseCSV(text);
+  const records = rows.map(r => ({
+    staff_id: String(r["社員番号"] || "").trim(),
+    call_date: r["日付"] ? formatDate(r["日付"]) : null,
+    call_count: parseInt(r["コール件数"] || "0") || 0,
+  })).filter(r => r.staff_id);
+  const res = await fetch(`${BASE_URL}/staff/upload/productivity_json`, {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ records })
+  });
+  const data = await res.json();
+  if (data.error) throw new Error(data.error);
+}
+
+async function uploadAtt(file) {
+  let csvText = "";
+  if (file.name.endsWith(".zip")) {
+    const buf = await file.arrayBuffer();
+    const zip = await JSZip.loadAsync(buf);
+    const allFiles = Object.values(zip.files);
+    const csvFile = allFiles.find(f => !f.dir && f.name.endsWith(".csv"));
+    if (!csvFile) throw new Error("ZIP内にCSVが見つかりません");
+    const csvBuf = await csvFile.async("arraybuffer");
+    csvText = new TextDecoder("shift-jis").decode(csvBuf);
+  } else {
+    const buf = await file.arrayBuffer();
+    csvText = new TextDecoder("shift-jis").decode(buf);
+  }
+  const rows = parseCSV(csvText);
+  const records = rows.map(r => {
+    const workTime = String(r["実労働時間"] || "00:00").trim();
+    let workHours = 0;
+    try {
+      const [h, m] = workTime.split(":");
+      workHours = Math.round((parseInt(h) + parseInt(m) / 60) * 1000) / 1000;
+    } catch(e) {}
+    return {
+      staff_id: String(r["*従業員ID"] || "").trim(),
+      work_date: r["*年月日"] ? formatDate(r["*年月日"]) : null,
+      work_hours: workHours,
+    };
+  }).filter(r => r.staff_id);
+  const res = await fetch(`${BASE_URL}/staff/upload/attendance_json`, {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ records })
+  });
+  const data = await res.json();
+  if (data.error) throw new Error(data.error);
+}
+
+function formatDate(val) {
+  if (!val) return null;
+  const d = new Date(val);
+  if (isNaN(d)) return String(val).trim();
+  return d.toISOString().split("T")[0];
+}
+
+function parseCSV(text) {
+  const lines = text.split("\n").filter(l => l.trim());
+  const headers = lines[0].split(",").map(h => h.trim().replace(/^"|"$/g, ""));
+  return lines.slice(1).map(line => {
+    const vals = line.split(",").map(v => v.trim().replace(/^"|"$/g, ""));
+    const obj = {};
+    headers.forEach((h, i) => obj[h] = vals[i] || "");
+    return obj;
+  });
+}
+
+// 初期読み込み
+loadData();
+</script>
+</body>
+</html>

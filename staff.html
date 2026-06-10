@@ -175,4 +175,70 @@ function renderPage(d) {
   document.getElementById("staff-rank").textContent = d.rank + " / " + d.site;
   document.title = d.name + " | 実績確認";
 
-  const
+  const rate = d.achieve_rate ?? 0;
+  const rateClass = rate >= 100 ? "kpi-green" : rate >= 80 ? "kpi-yellow" : "kpi-red";
+  const remain = d.target_achieve > 0 ? d.target_achieve - d.sales : null;
+
+  document.getElementById("kpi-sales").textContent = fmt(d.sales);
+  document.getElementById("kpi-sales-sub").textContent = `アポ ${fmt(d.apo_amount)} - CXL ${fmt(d.cxl_amount)} + FB ${fmt(d.fb_amount)}`;
+
+  const rateEl = document.getElementById("kpi-rate");
+  rateEl.textContent = d.achieve_rate != null ? d.achieve_rate + "%" : "-";
+  rateEl.className = "kpi-value " + rateClass;
+  document.getElementById("kpi-rate-sub").textContent = `出勤 ${d.work_days}日`;
+
+  const remainEl = document.getElementById("kpi-remain");
+  if (remain != null && remain > 0) {
+    remainEl.textContent = fmt(remain);
+    remainEl.className = "kpi-value kpi-red";
+    document.getElementById("kpi-remain-sub").textContent = "達成目標まで";
+  } else if (remain != null && remain <= 0) {
+    remainEl.textContent = "達成！";
+    remainEl.className = "kpi-value kpi-green";
+    document.getElementById("kpi-remain-sub").textContent = fmt(Math.abs(remain)) + " 超過";
+  } else {
+    remainEl.textContent = "-";
+  }
+
+  // ゲージ
+  const maxVal = d.target_achieve > 0 ? d.target_achieve * 1.5 : d.sales * 1.5 || 1;
+  const barWidth = Math.min((d.sales / maxVal) * 100, 100);
+  const barColor = rate >= 100 ? "#10b981" : rate >= 80 ? "#f59e0b" : "#ef4444";
+  document.getElementById("gauge-bar").style.width = barWidth + "%";
+  document.getElementById("gauge-bar").style.background = barColor;
+
+  if (d.target_achieve > 0) {
+    const maintainPos = Math.min((d.target_maintain / maxVal) * 100, 100);
+    const achievePos = Math.min((d.target_achieve / maxVal) * 100, 100);
+    document.getElementById("gauge-maintain").style.left = maintainPos + "%";
+    document.getElementById("gauge-achieve").style.left = achievePos + "%";
+    document.getElementById("gauge-maintain-label").textContent = "維持 " + fmt(d.target_maintain);
+    document.getElementById("gauge-achieve-label").textContent = "達成 " + fmt(d.target_achieve);
+  }
+
+  // 売上内訳
+  const statusBadge = rate >= 100 ? '<span class="badge-achieve">達成</span>' :
+                      rate >= 80 ? '<span class="badge-maintain">維持圏</span>' :
+                      '<span class="badge-under">未達</span>';
+  document.getElementById("breakdown-body").innerHTML = `
+    <tr><td>アポ取得金額</td><td class="num">${fmt(d.apo_amount)}</td></tr>
+    <tr><td>キャンセル金額</td><td class="num" style="color:#ef4444">${d.cxl_amount > 0 ? '▲' + fmt(d.cxl_amount) : '-'}</td></tr>
+    <tr><td>FB金額</td><td class="num" style="color:#3b82f6">${d.fb_amount > 0 ? fmt(d.fb_amount) : '-'}</td></tr>
+    <tr><td><strong>売上合計</strong></td><td class="num"><strong>${fmt(d.sales)}</strong> ${statusBadge}</td></tr>
+    <tr><td>達成目標</td><td class="num">${d.target_achieve > 0 ? fmt(d.target_achieve) : '-'}</td></tr>
+    <tr><td>維持目標</td><td class="num">${d.target_maintain > 0 ? fmt(d.target_maintain) : '-'}</td></tr>
+  `;
+
+  document.getElementById("loading").style.display = "none";
+  document.getElementById("content").style.display = "block";
+}
+
+function fmt(n) {
+  if (n == null || n === 0) return "¥0";
+  return "¥" + n.toLocaleString();
+}
+
+loadData();
+</script>
+</body>
+</html>

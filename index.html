@@ -34,7 +34,7 @@
   .update-btn:disabled { background: #2a2a35; color: #666; cursor: not-allowed; }
   .status-msg { font-size: 12px; color: #888; }
 
-  .summary-bar { padding: 12px 24px; display: flex; gap: 24px; border-bottom: 1px solid #2a2a35; }
+  .summary-bar { padding: 12px 24px; display: flex; gap: 24px; border-bottom: 1px solid #2a2a35; flex-wrap: wrap; }
   .summary-item { display: flex; flex-direction: column; gap: 2px; }
   .summary-label { font-size: 11px; color: #666; }
   .summary-value { font-size: 18px; font-weight: 600; color: #fff; }
@@ -62,7 +62,6 @@
   .badge-staff { background: #2a2a2a; color: #9ca3af; }
   .monthly-tag { font-size: 10px; color: #888; background: #2a2a35; padding: 1px 5px; border-radius: 3px; margin-left: 4px; }
 
-  /* モーダル */
   .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 200; align-items: center; justify-content: center; }
   .modal-overlay.active { display: flex; }
   .modal { background: #16161e; border: 1px solid #2a2a35; border-radius: 12px; padding: 32px; width: 100%; max-width: 480px; }
@@ -76,7 +75,6 @@
   .btn-submit { background: #5a9cf8; border: none; color: #fff; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500; }
   .btn-submit:disabled { background: #2a2a35; color: #666; cursor: not-allowed; }
   .modal-msg { font-size: 12px; margin-top: 8px; text-align: center; }
-
   .register-btn { background: #1e1e28; border: 1px solid #2a2a35; color: #e2e2e8; padding: 5px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; }
   .register-btn:hover { border-color: #5a9cf8; color: #5a9cf8; }
 
@@ -156,13 +154,13 @@
         <th onclick="sortTable('target_maintain')">維持目標</th>
         <th onclick="sortTable('achieve_rate')">達成率</th>
         <th onclick="sortTable('work_days')">出勤日数</th>
+        <th onclick="sortTable('hourly_wage')">時給</th>
       </tr>
     </thead>
     <tbody id="table-body"></tbody>
   </table>
 </div>
 
-<!-- スタッフ登録モーダル -->
 <div class="modal-overlay" id="register-modal">
   <div class="modal">
     <div class="modal-title">スタッフ登録</div>
@@ -205,7 +203,6 @@ let allData = [];
 let sortKey = "achieve_rate";
 let sortDir = -1;
 
-// 認証ガード
 const token = localStorage.getItem("staff_token");
 const role = localStorage.getItem("staff_role");
 if (!token || role !== "admin") {
@@ -246,7 +243,6 @@ async function registerStaff() {
   const btn = document.getElementById("reg-submit");
   const msg = document.getElementById("reg-msg");
   btn.disabled = true;
-
   try {
     const res = await fetch(`${BASE_URL}/staff/register`, {
       method: "POST",
@@ -323,15 +319,16 @@ function renderTable() {
     const barWidth = Math.min(rate, 150);
     const rankBadge = getRankBadge(d.rank);
     const monthlyTag = d.is_monthly ? '<span class="monthly-tag">月給</span>' : "";
+    const wageDisplay = d.is_monthly ? '<span style="color:#fbbf24">月給制</span>' : d.hourly_wage > 0 ? '¥' + d.hourly_wage.toLocaleString() : '-';
 
     return `<tr>
       <td><a class="staff-link" href="staff.html?id=${d.staff_id}&month=${month}">${d.name}</a>${monthlyTag}</td>
       <td><span class="badge ${rankBadge.cls}">${rankBadge.label}</span></td>
       <td>${d.site}</td>
       <td class="num">${fmt(d.sales)}</td>
-      <td class="num">${fmt(d.apo_amount)}</td>
-      <td class="num">${d.cxl_amount > 0 ? '<span class="num-red">▲' + fmt(d.cxl_amount) + '</span>' : '-'}</td>
-      <td class="num">${d.fb_amount > 0 ? fmt(d.fb_amount) : '-'}</td>
+      <td class="num" style="color:#34d399">${fmt(d.apo_amount)}</td>
+      <td class="num">${d.cxl_amount > 0 ? '<span style="color:#f87171">▲' + fmt(d.cxl_amount) + '</span>' : '-'}</td>
+      <td class="num" style="color:#60a5fa">${d.fb_amount > 0 ? fmt(d.fb_amount) : '-'}</td>
       <td class="num">${d.target_achieve > 0 ? fmt(d.target_achieve) : '-'}</td>
       <td class="num">${d.target_maintain > 0 ? fmt(d.target_maintain) : '-'}</td>
       <td>
@@ -341,6 +338,7 @@ function renderTable() {
         </div>
       </td>
       <td class="num">${d.work_days}日</td>
+      <td class="num">${wageDisplay}</td>
     </tr>`;
   }).join("");
 
@@ -358,7 +356,7 @@ function renderSummary(data) {
 
   document.getElementById("summary-bar").innerHTML = `
     <div class="summary-item"><span class="summary-label">総売上</span><span class="summary-value">${fmt(totalSales)}</span></div>
-    <div class="summary-item"><span class="summary-label">アポ取得</span><span class="summary-value">${fmt(totalApo)}</span></div>
+    <div class="summary-item"><span class="summary-label">アポ取得</span><span class="summary-value" style="color:#34d399">${fmt(totalApo)}</span></div>
     <div class="summary-item"><span class="summary-label">CXL</span><span class="summary-value" style="color:#f87171">▲${fmt(totalCxl)}</span></div>
     <div class="summary-item"><span class="summary-label">FB</span><span class="summary-value" style="color:#60a5fa">${fmt(totalFb)}</span></div>
     <div class="summary-item"><span class="summary-label">達成者数</span><span class="summary-value" style="color:#34d399">${over100}名</span></div>
@@ -394,16 +392,13 @@ async function uploadAll() {
   const msg = document.getElementById("status-msg");
   btn.disabled = true;
   msg.textContent = "アップロード中...";
-
   try {
     const apoFile = document.getElementById("apo-file").files[0];
     const prodFile = document.getElementById("prod-file").files[0];
     const attFile = document.getElementById("att-file").files[0];
-
     if (apoFile) { msg.textContent = "① アポリスト処理中..."; await uploadApo(apoFile); }
     if (prodFile) { msg.textContent = "② 生産性レポート処理中..."; await uploadProd(prodFile); }
     if (attFile) { msg.textContent = "③ jinjer処理中..."; await uploadAtt(attFile); }
-
     msg.textContent = "✅ 更新完了";
     await loadData();
   } catch(e) {

@@ -74,6 +74,7 @@
   .badge-staff { background: #f3f0ec; color: #a89884; }
   .monthly-tag { font-size: 10px; color: #b08968; background: #fff4e8; padding: 1px 5px; border-radius: 3px; margin-left: 4px; }
   .confirmed-tag { font-size: 10px; color: #2eb872; background: #eafaf0; padding: 1px 5px; border-radius: 3px; }
+  .incentive-na { font-size: 11px; color: #c9a07a; }
 
   .planned-cell { display: flex; align-items: center; gap: 4px; }
   .planned-input-cell { width: 50px; padding: 4px 6px; border: 1px solid #f0e4da; border-radius: 4px; font-size: 12px; text-align: center; background: #fff7f1; color: #2a2622; }
@@ -94,6 +95,19 @@
   .action-btn { background: transparent; border: 1px solid #f0e4da; color: #8a7a6d; padding: 4px 10px; border-radius: 4px; font-size: 11px; cursor: pointer; margin-right: 4px; }
   .action-btn:hover { border-color: #e8a87c; color: #d97a3f; }
   .action-btn.delete:hover { border-color: #d9534f; color: #d9534f; }
+
+  /* インセンティブ管理 */
+  .inc-section { background: #fff; border: 1px solid #f5e6d8; border-radius: 14px; padding: 24px; margin-bottom: 16px; }
+  .inc-section-title { font-size: 14px; font-weight: 700; color: #2a2622; margin-bottom: 4px; }
+  .inc-section-sub { font-size: 12px; color: #c9a07a; margin-bottom: 16px; }
+  .inc-form-row { display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; }
+  .inc-form-group { display: flex; flex-direction: column; gap: 4px; }
+  .inc-form-group label { font-size: 12px; color: #8a7a6d; }
+  .inc-save-btn { background: #e8a87c; border: none; color: #fff; padding: 8px 18px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; height: 34px; }
+  .inc-save-btn:hover { background: #d97a3f; }
+  .inc-save-btn:disabled { background: #f0e4da; color: #c9a07a; cursor: not-allowed; }
+  .inc-msg { font-size: 12px; margin-top: 8px; }
+  .inc-note { font-size: 11px; color: #c9a07a; margin-top: 8px; line-height: 1.6; }
 
   /* モーダル */
   .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(42,38,34,0.4); z-index: 200; align-items: center; justify-content: center; }
@@ -189,6 +203,7 @@
 <div class="tab-bar">
   <button class="tab-btn active" id="tab-summary-btn" onclick="switchTab('summary')">実績一覧</button>
   <button class="tab-btn" id="tab-fb-btn" onclick="switchTab('fb')">FBキャンペーン管理</button>
+  <button class="tab-btn" id="tab-inc-btn" onclick="switchTab('inc')">インセンティブ管理</button>
 </div>
 
 <!-- 実績一覧タブ -->
@@ -211,6 +226,7 @@
           <th onclick="sortTable('work_days')">出勤日数</th>
           <th onclick="sortTable('hourly_wage')">時給</th>
           <th>出勤予定数</th>
+          <th onclick="sortTable('incentive_target')">インセンティブ目標</th>
         </tr>
       </thead>
       <tbody id="table-body"></tbody>
@@ -241,6 +257,52 @@
       </thead>
       <tbody id="fb-table-body"></tbody>
     </table>
+  </div>
+</div>
+
+<!-- インセンティブ管理タブ -->
+<div class="tab-content" id="tab-inc">
+  <div class="table-wrap">
+
+    <div class="inc-section">
+      <div class="inc-section-title">インセンティブ対象時給範囲</div>
+      <div class="inc-section-sub">この範囲内の時給のスタッフのみ、インセンティブ目標を計算します</div>
+      <div class="inc-form-row">
+        <div class="inc-form-group">
+          <label>下限（円）</label>
+          <input type="number" id="inc-min-wage" style="width:120px">
+        </div>
+        <div class="inc-form-group">
+          <label>上限（円）</label>
+          <input type="number" id="inc-max-wage" style="width:120px">
+        </div>
+        <button class="inc-save-btn" onclick="saveIncentiveSettings()">保存</button>
+      </div>
+      <div class="inc-msg" id="inc-settings-msg"></div>
+    </div>
+
+    <div class="inc-section">
+      <div class="inc-section-title">インセンティブ給与データアップロード</div>
+      <div class="inc-section-sub">管理本部から共有される給与データCSVをアップロードします（社員番号・非課税通勤手当を使用）</div>
+      <div class="inc-form-row">
+        <div class="inc-form-group">
+          <label>対象月（このデータの月）</label>
+          <input type="month" id="inc-payroll-month">
+        </div>
+        <div class="inc-form-group">
+          <label>給与データCSV</label>
+          <label class="upload-btn" style="height:34px;display:flex;align-items:center">ファイル選択<input class="upload-input" type="file" id="inc-payroll-file" accept=".csv"></label>
+        </div>
+        <span class="upload-filename" id="inc-payroll-name">未選択</span>
+        <button class="inc-save-btn" onclick="uploadIncentivePayroll()">アップロード</button>
+      </div>
+      <div class="inc-msg" id="inc-payroll-msg"></div>
+      <div class="inc-note">
+        ※ このデータは「対象月」の2ヶ月後のインセンティブ計算に使用されます（例：4月分データ → 6月のインセンティブ計算で使用）<br>
+        ※ CSVの列構成：社員番号、氏名、在籍区分、基本給、残業手当、非課税通勤手当
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -392,6 +454,9 @@ document.getElementById("prod-file").addEventListener("change", e => {
 document.getElementById("att-file").addEventListener("change", e => {
   document.getElementById("att-name").textContent = e.target.files[0]?.name || "未選択";
 });
+document.getElementById("inc-payroll-file").addEventListener("change", e => {
+  document.getElementById("inc-payroll-name").textContent = e.target.files[0]?.name || "未選択";
+});
 
 document.getElementById("month-select").addEventListener("change", loadData);
 document.getElementById("site-filter").addEventListener("change", renderTable);
@@ -408,10 +473,15 @@ function logout() {
 function switchTab(tab) {
   document.getElementById("tab-summary").classList.toggle("active", tab === "summary");
   document.getElementById("tab-fb").classList.toggle("active", tab === "fb");
+  document.getElementById("tab-inc").classList.toggle("active", tab === "inc");
   document.getElementById("tab-summary-btn").classList.toggle("active", tab === "summary");
   document.getElementById("tab-fb-btn").classList.toggle("active", tab === "fb");
+  document.getElementById("tab-inc-btn").classList.toggle("active", tab === "inc");
   if (tab === "fb" && allCampaigns.length === 0) {
     loadCampaigns();
+  }
+  if (tab === "inc") {
+    loadIncentiveSettings();
   }
 }
 
@@ -529,6 +599,14 @@ function renderTable() {
         </div>`;
     }
 
+    // インセンティブ目標セル
+    let incentiveCell;
+    if (d.incentive_status === "ok") {
+      incentiveCell = `<span class="num">${fmt(d.incentive_target)}</span>`;
+    } else {
+      incentiveCell = `<span class="incentive-na">${d.incentive_status}</span>`;
+    }
+
     return `<tr>
       <td><a class="staff-link" href="staff.html?id=${d.staff_id}&month=${month}">${d.name}</a>${monthlyTag}</td>
       <td><span class="badge ${rankBadge.cls}">${rankBadge.label}</span></td>
@@ -548,6 +626,7 @@ function renderTable() {
       <td class="num">${d.work_days}日</td>
       <td class="num">${wageDisplay}</td>
       <td>${plannedCell}</td>
+      <td>${incentiveCell}</td>
     </tr>`;
   }).join("");
 
@@ -928,6 +1007,130 @@ async function deleteCampaign(id) {
     }
   } catch(e) {
     alert("通信エラー: " + e.message);
+  }
+}
+
+// ============================================================
+// インセンティブ管理
+// ============================================================
+async function loadIncentiveSettings() {
+  const msg = document.getElementById("inc-settings-msg");
+  msg.textContent = "";
+  try {
+    const res = await fetch(`${BASE_URL}/staff/incentive_settings`, {
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+    const data = await res.json();
+    if (data.data) {
+      document.getElementById("inc-min-wage").value = data.data.min_wage;
+      document.getElementById("inc-max-wage").value = data.data.max_wage;
+    }
+  } catch(e) {
+    msg.style.color = "#d9534f";
+    msg.textContent = "読み込みエラー: " + e.message;
+  }
+
+  // 給与アップロードの対象月デフォルト：当月の2ヶ月前
+  const monthInput = document.getElementById("inc-payroll-month");
+  if (!monthInput.value) {
+    const currentMonth = document.getElementById("month-select").value;
+    const [y, m] = currentMonth.split("-").map(Number);
+    let py = y, pm = m - 2;
+    if (pm <= 0) { pm += 12; py -= 1; }
+    monthInput.value = `${py}-${String(pm).padStart(2, "0")}`;
+  }
+}
+
+async function saveIncentiveSettings() {
+  const msg = document.getElementById("inc-settings-msg");
+  const minWage = document.getElementById("inc-min-wage").value;
+  const maxWage = document.getElementById("inc-max-wage").value;
+
+  if (minWage === "" || maxWage === "") {
+    msg.style.color = "#d9534f";
+    msg.textContent = "上限・下限を入力してください";
+    return;
+  }
+  if (parseInt(minWage) > parseInt(maxWage)) {
+    msg.style.color = "#d9534f";
+    msg.textContent = "下限は上限以下にしてください";
+    return;
+  }
+
+  try {
+    const res = await fetch(`${BASE_URL}/staff/incentive_settings`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify({ min_wage: parseInt(minWage), max_wage: parseInt(maxWage) })
+    });
+    const data = await res.json();
+    if (data.error) {
+      msg.style.color = "#d9534f";
+      msg.textContent = data.error;
+    } else {
+      msg.style.color = "#2eb872";
+      msg.textContent = "保存しました";
+      await loadData();
+    }
+  } catch(e) {
+    msg.style.color = "#d9534f";
+    msg.textContent = "通信エラー: " + e.message;
+  }
+}
+
+async function uploadIncentivePayroll() {
+  const msg = document.getElementById("inc-payroll-msg");
+  const month = document.getElementById("inc-payroll-month").value;
+  const file = document.getElementById("inc-payroll-file").files[0];
+
+  if (!month) {
+    msg.style.color = "#d9534f";
+    msg.textContent = "対象月を選択してください";
+    return;
+  }
+  if (!file) {
+    msg.style.color = "#d9534f";
+    msg.textContent = "CSVファイルを選択してください";
+    return;
+  }
+
+  try {
+    msg.style.color = "#c9a07a";
+    msg.textContent = "アップロード中...";
+
+    const buf = await file.arrayBuffer();
+    const csvText = new TextDecoder("shift-jis").decode(buf);
+    const rows = parseCSV(csvText);
+
+    const records = rows.map(r => ({
+      staff_id: String(r["社員番号"] || "").trim(),
+      base_salary: parseInt(String(r["基本給"] || "0").replace(/,/g, "")) || 0,
+      commute_allowance: parseInt(String(r["非課税通勤手当"] || "0").replace(/,/g, "")) || 0,
+    })).filter(r => r.staff_id);
+
+    const res = await fetch(`${BASE_URL}/staff/upload/incentive_payroll_json`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify({ month, records })
+    });
+    const data = await res.json();
+    if (data.error) {
+      msg.style.color = "#d9534f";
+      msg.textContent = data.error;
+    } else {
+      msg.style.color = "#2eb872";
+      msg.textContent = `${data.count}件アップロードしました`;
+      await loadData();
+    }
+  } catch(e) {
+    msg.style.color = "#d9534f";
+    msg.textContent = "エラー: " + e.message;
   }
 }
 

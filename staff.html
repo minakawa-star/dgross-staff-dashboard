@@ -6,53 +6,72 @@
 <title>実績確認</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { background: #f7f7f8; color: #1a1a2e; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 14px; }
+  body { background: #fdfaf7; color: #2a2622; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 14px; }
 
-  .header { background: #fff; border-bottom: 1px solid #e8e8ed; padding: 0 24px; height: 56px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+  .header { background: #fff; border-bottom: 1px solid #f0e4da; padding: 0 24px; height: 56px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
   .header-left { display: flex; align-items: center; gap: 16px; }
-  .header-title { font-size: 16px; font-weight: 600; color: #1a1a2e; }
-  .header-sub { font-size: 13px; color: #888; }
+  .header-title { font-size: 16px; font-weight: 700; color: #2a2622; }
+  .header-sub { font-size: 13px; color: #b08968; }
   .header-right { display: flex; align-items: center; gap: 12px; }
-  .logout-btn { background: transparent; border: 1px solid #e0e0e8; color: #888; padding: 5px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; }
-  .logout-btn:hover { border-color: #aaa; color: #1a1a2e; }
+  .logout-btn { background: transparent; border: 1px solid #f0e4da; color: #b08968; padding: 5px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; }
+  .logout-btn:hover { border-color: #e8a87c; color: #2a2622; }
 
   select, input[type="month"] {
-    background: #f0f0f5; border: 1px solid #e0e0e8; color: #1a1a2e;
+    background: #fff7f1; border: 1px solid #f0e4da; color: #2a2622;
     padding: 6px 10px; border-radius: 8px; font-size: 13px; cursor: pointer; outline: none;
   }
 
-  .container { max-width: 900px; margin: 0 auto; padding: 24px 16px; }
+  .container { max-width: 960px; margin: 0 auto; padding: 24px 16px; }
 
-  .kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
-  .kpi-card { background: #fff; border: 1px solid #e8e8ed; border-radius: 12px; padding: 20px; }
-  .kpi-label { font-size: 12px; color: #888; margin-bottom: 8px; }
-  .kpi-value { font-size: 26px; font-weight: 700; color: #1a1a2e; font-variant-numeric: tabular-nums; }
-  .kpi-sub { font-size: 12px; color: #aaa; margin-top: 4px; }
-  .kpi-green { color: #10b981; }
-  .kpi-yellow { color: #f59e0b; }
-  .kpi-red { color: #ef4444; }
+  /* メインサマリー */
+  .main-grid { display: grid; grid-template-columns: 1.3fr 1fr; gap: 16px; margin-bottom: 16px; }
+  @media (max-width: 760px) { .main-grid { grid-template-columns: 1fr; } }
 
-  .gauge-card { background: #fff; border: 1px solid #e8e8ed; border-radius: 12px; padding: 24px; margin-bottom: 24px; }
-  .gauge-title { font-size: 13px; font-weight: 600; color: #555; margin-bottom: 16px; }
-  .gauge-wrap { position: relative; height: 12px; background: #f0f0f5; border-radius: 6px; overflow: hidden; margin-bottom: 8px; }
-  .gauge-bar { height: 100%; border-radius: 6px; transition: width 0.5s ease; }
-  .gauge-labels { display: flex; justify-content: space-between; font-size: 11px; color: #aaa; }
-  .gauge-milestone { position: absolute; top: 0; height: 100%; width: 2px; background: #fff; opacity: 0.8; }
+  .summary-card { background: #fff; border: 1px solid #f5e6d8; border-radius: 14px; padding: 24px; }
+  .summary-title { font-size: 13px; font-weight: 700; color: #2a2622; margin-bottom: 4px; }
+  .summary-sub { font-size: 11px; color: #c9a07a; margin-bottom: 16px; }
 
-  .section-card { background: #fff; border: 1px solid #e8e8ed; border-radius: 12px; margin-bottom: 24px; overflow: hidden; }
-  .section-header { padding: 16px 20px; border-bottom: 1px solid #f0f0f5; font-size: 13px; font-weight: 600; color: #555; }
-  table { width: 100%; border-collapse: collapse; }
-  th { background: #fafafa; color: #aaa; font-size: 11px; font-weight: 500; text-align: left; padding: 8px 16px; border-bottom: 1px solid #f0f0f5; }
-  td { padding: 10px 16px; border-bottom: 1px solid #f7f7f8; font-size: 13px; }
-  tr:last-child td { border-bottom: none; }
-  tr:hover td { background: #fafafa; }
+  .summary-table { width: 100%; border-collapse: collapse; }
+  .summary-table td { padding: 10px 0; border-bottom: 1px solid #f7eee5; font-size: 13px; }
+  .summary-table tr:last-child td { border-bottom: none; }
+  .summary-table td:first-child { color: #8a7a6d; }
+  .summary-table td:last-child { text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .plus { color: #d97a3f; }
+  .minus { color: #d9534f; }
+  .blue { color: #5a9cf8; }
 
-  .num { font-variant-numeric: tabular-nums; }
-  .badge-achieve { background: #d1fae5; color: #065f46; padding: 2px 8px; border-radius: 4px; font-size: 11px; }
-  .badge-maintain { background: #fef3c7; color: #92400e; padding: 2px 8px; border-radius: 4px; font-size: 11px; }
-  .badge-under { background: #fee2e2; color: #991b1b; padding: 2px 8px; border-radius: 4px; font-size: 11px; }
+  /* ドーナツカード */
+  .gauge-card { background: #fff; border: 1px solid #f5e6d8; border-radius: 14px; padding: 24px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .gauge-card-title { font-size: 13px; font-weight: 700; color: #2a2622; margin-bottom: 16px; align-self: flex-start; }
+  .donut-wrap { position: relative; width: 180px; height: 180px; }
+  .donut-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); text-align: center; }
+  .donut-rate { font-size: 28px; font-weight: 800; }
+  .donut-label { font-size: 11px; color: #c9a07a; margin-top: 2px; }
+  .donut-status { margin-top: 16px; padding: 6px 16px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+  .status-achieve { background: #fdeee3; color: #d97a3f; }
+  .status-maintain { background: #fff4e0; color: #cf9a3a; }
+  .status-under { background: #fdecec; color: #d9534f; }
 
-  .loading { text-align: center; padding: 60px; color: #aaa; }
+  /* KPIグリッド */
+  .kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 16px; }
+  @media (max-width: 760px) { .kpi-grid { grid-template-columns: 1fr; } }
+  .kpi-card { background: #fff; border: 1px solid #f5e6d8; border-radius: 14px; padding: 18px 20px; }
+  .kpi-label { font-size: 12px; color: #c9a07a; margin-bottom: 6px; }
+  .kpi-value { font-size: 22px; font-weight: 800; color: #2a2622; font-variant-numeric: tabular-nums; }
+  .kpi-sub { font-size: 11px; color: #c9a07a; margin-top: 4px; }
+  .kpi-green { color: #d97a3f; }
+  .kpi-yellow { color: #cf9a3a; }
+  .kpi-red { color: #d9534f; }
+
+  /* バー */
+  .bar-card { background: #fff; border: 1px solid #f5e6d8; border-radius: 14px; padding: 24px; margin-bottom: 16px; }
+  .bar-title { font-size: 13px; font-weight: 700; color: #2a2622; margin-bottom: 16px; }
+  .bar-wrap { position: relative; height: 10px; background: #f7eee5; border-radius: 5px; overflow: hidden; margin-bottom: 8px; }
+  .bar-fill { height: 100%; border-radius: 5px; background: linear-gradient(90deg,#f3c19c,#e8a87c); transition: width 0.6s ease; }
+  .bar-milestone { position: absolute; top: -3px; height: 16px; width: 2px; background: #fff; }
+  .bar-labels { display: flex; justify-content: space-between; font-size: 11px; color: #c9a07a; }
+
+  .loading { text-align: center; padding: 60px; color: #c9a07a; }
 </style>
 </head>
 <body>
@@ -74,44 +93,64 @@
   <div id="loading" class="loading">データを読み込み中...</div>
   <div id="content" style="display:none">
 
+    <!-- メイン：内訳 + ドーナツ -->
+    <div class="main-grid">
+      <div class="summary-card">
+        <div class="summary-title" id="summary-title">今月の実績</div>
+        <div class="summary-sub" id="summary-sub"></div>
+        <table class="summary-table" id="breakdown-body"></table>
+      </div>
+
+      <div class="gauge-card">
+        <div class="gauge-card-title">達成率</div>
+        <div class="donut-wrap">
+          <svg width="180" height="180" viewBox="0 0 180 180">
+            <circle cx="90" cy="90" r="78" fill="none" stroke="#f7eee5" stroke-width="16"/>
+            <circle id="donut-circle" cx="90" cy="90" r="78" fill="none" stroke="#e8a87c" stroke-width="16"
+                    stroke-linecap="round" stroke-dasharray="490" stroke-dashoffset="490"
+                    transform="rotate(-90 90 90)" style="transition: stroke-dashoffset 0.8s ease;"/>
+          </svg>
+          <div class="donut-center">
+            <div class="donut-rate" id="donut-rate">-</div>
+            <div class="donut-label" id="donut-sub">出勤 -日</div>
+          </div>
+        </div>
+        <div class="donut-status" id="donut-status">-</div>
+      </div>
+    </div>
+
+    <!-- KPI -->
     <div class="kpi-grid">
-      <div class="kpi-card">
-        <div class="kpi-label">今月の売上</div>
-        <div class="kpi-value" id="kpi-sales">-</div>
-        <div class="kpi-sub" id="kpi-sales-sub"></div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-label">達成率</div>
-        <div class="kpi-value" id="kpi-rate">-</div>
-        <div class="kpi-sub" id="kpi-rate-sub"></div>
-      </div>
       <div class="kpi-card">
         <div class="kpi-label">達成まであと</div>
         <div class="kpi-value" id="kpi-remain">-</div>
         <div class="kpi-sub" id="kpi-remain-sub"></div>
       </div>
+      <div class="kpi-card">
+        <div class="kpi-label">時給</div>
+        <div class="kpi-value" id="info-wage">-</div>
+        <div class="kpi-sub">本人ステータス基準</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">出勤日数</div>
+        <div class="kpi-value" id="info-days">-</div>
+        <div class="kpi-sub">当月実績</div>
+      </div>
     </div>
 
-    <div class="gauge-card">
-      <div class="gauge-title">目標達成状況</div>
-      <div class="gauge-wrap">
-        <div class="gauge-bar" id="gauge-bar"></div>
-        <div class="gauge-milestone" id="gauge-maintain"></div>
-        <div class="gauge-milestone" id="gauge-achieve" style="left:100%"></div>
+    <!-- 目標バー -->
+    <div class="bar-card">
+      <div class="bar-title">目標達成状況</div>
+      <div class="bar-wrap">
+        <div class="bar-fill" id="bar-fill"></div>
+        <div class="bar-milestone" id="bar-maintain"></div>
+        <div class="bar-milestone" id="bar-achieve" style="left:100%"></div>
       </div>
-      <div class="gauge-labels">
+      <div class="bar-labels">
         <span>¥0</span>
-        <span id="gauge-maintain-label">維持目標</span>
-        <span id="gauge-achieve-label">達成目標</span>
+        <span id="bar-maintain-label">維持目標</span>
+        <span id="bar-achieve-label">達成目標</span>
       </div>
-    </div>
-
-    <div class="section-card">
-      <div class="section-header">売上内訳</div>
-      <table>
-        <thead><tr><th>項目</th><th>金額</th></tr></thead>
-        <tbody id="breakdown-body"></tbody>
-      </table>
     </div>
 
   </div>
@@ -122,7 +161,6 @@ const BASE_URL = "https://digross-server.onrender.com";
 
 fetch(BASE_URL + "/health_staff").catch(() => {});
 
-// 認証ガード
 const token = localStorage.getItem("staff_token");
 const storedStaffId = localStorage.getItem("staff_id");
 const role = localStorage.getItem("staff_role");
@@ -138,7 +176,6 @@ function getParams() {
 
 const { staffId, month } = getParams();
 
-// 管理者以外は自分のページのみ閲覧可
 if (role !== "admin" && staffId !== storedStaffId) {
   window.location.href = `staff.html?id=${storedStaffId}&month=${month}`;
 }
@@ -161,17 +198,14 @@ async function loadData() {
     document.getElementById("loading").textContent = "URLにスタッフIDが指定されていません";
     return;
   }
-
   try {
     const res = await fetch(`${BASE_URL}/staff/summary?month=${month}`);
     const data = await res.json();
     const staff = (data.data || []).find(d => d.staff_id === staffId);
-
     if (!staff) {
       document.getElementById("loading").textContent = "スタッフが見つかりません: " + staffId;
       return;
     }
-
     renderPage(staff);
   } catch(e) {
     document.getElementById("loading").textContent = "読み込みエラー: " + e.message;
@@ -184,17 +218,37 @@ function renderPage(d) {
   document.title = d.name + " | 実績確認";
 
   const rate = d.achieve_rate ?? 0;
-  const rateClass = rate >= 100 ? "kpi-green" : rate >= 80 ? "kpi-yellow" : "kpi-red";
   const remain = d.target_achieve > 0 ? d.target_achieve - d.sales : null;
 
-  document.getElementById("kpi-sales").textContent = fmt(d.sales);
-  document.getElementById("kpi-sales-sub").textContent = `アポ ${fmt(d.apo_amount)} - CXL ${fmt(d.cxl_amount)} + FB ${fmt(d.fb_amount)}`;
+  // サマリーテーブル
+  document.getElementById("summary-sub").textContent = `${month} 月の売上実績`;
+  document.getElementById("breakdown-body").innerHTML = `
+    <tr><td>売上合計</td><td>${fmt(d.sales)}</td></tr>
+    <tr><td>アポ取得金額</td><td class="plus">${fmt(d.apo_amount)}</td></tr>
+    <tr><td>キャンセル金額</td><td class="minus">${d.cxl_amount > 0 ? '▲' + fmt(d.cxl_amount) : '-'}</td></tr>
+    <tr><td>FB金額</td><td class="blue">${d.fb_amount > 0 ? fmt(d.fb_amount) : '-'}</td></tr>
+    <tr><td>達成目標</td><td>${d.target_achieve > 0 ? fmt(d.target_achieve) : '-'}</td></tr>
+    <tr><td>維持目標</td><td>${d.target_maintain > 0 ? fmt(d.target_maintain) : '-'}</td></tr>
+  `;
 
-  const rateEl = document.getElementById("kpi-rate");
-  rateEl.textContent = d.achieve_rate != null ? d.achieve_rate + "%" : "-";
-  rateEl.className = "kpi-value " + rateClass;
-  document.getElementById("kpi-rate-sub").textContent = `出勤 ${d.work_days}日`;
+  // ドーナツ
+  const circumference = 490;
+  const pct = Math.min(rate, 150) / 150; // 150%でフル
+  const offset = circumference * (1 - pct);
+  const circle = document.getElementById("donut-circle");
+  circle.style.strokeDashoffset = offset;
+  circle.style.stroke = rate >= 100 ? "#e8a87c" : rate >= 80 ? "#f0c987" : "#e89a9a";
 
+  document.getElementById("donut-rate").textContent = d.achieve_rate != null ? d.achieve_rate + "%" : "-";
+  document.getElementById("donut-rate").style.color = rate >= 100 ? "#d97a3f" : rate >= 80 ? "#cf9a3a" : "#d9534f";
+  document.getElementById("donut-sub").textContent = `出勤 ${d.work_days}日`;
+
+  const statusEl = document.getElementById("donut-status");
+  if (rate >= 100) { statusEl.textContent = "達成"; statusEl.className = "donut-status status-achieve"; }
+  else if (rate >= 80) { statusEl.textContent = "維持圏"; statusEl.className = "donut-status status-maintain"; }
+  else { statusEl.textContent = "未達"; statusEl.className = "donut-status status-under"; }
+
+  // KPI
   const remainEl = document.getElementById("kpi-remain");
   if (remain != null && remain > 0) {
     remainEl.textContent = fmt(remain);
@@ -206,34 +260,31 @@ function renderPage(d) {
     document.getElementById("kpi-remain-sub").textContent = fmt(Math.abs(remain)) + " 超過";
   } else {
     remainEl.textContent = "-";
+    document.getElementById("kpi-remain-sub").textContent = "";
   }
 
+  const wageEl = document.getElementById("info-wage");
+  if (d.is_monthly) {
+    wageEl.textContent = "月給制";
+    wageEl.style.color = "#cf9a3a";
+  } else {
+    wageEl.textContent = d.hourly_wage > 0 ? "¥" + d.hourly_wage.toLocaleString() : "-";
+  }
+  document.getElementById("info-days").textContent = d.work_days + "日";
+
+  // 目標バー
   const maxVal = d.target_achieve > 0 ? d.target_achieve * 1.5 : d.sales * 1.5 || 1;
   const barWidth = Math.min((d.sales / maxVal) * 100, 100);
-  const barColor = rate >= 100 ? "#10b981" : rate >= 80 ? "#f59e0b" : "#ef4444";
-  document.getElementById("gauge-bar").style.width = barWidth + "%";
-  document.getElementById("gauge-bar").style.background = barColor;
+  document.getElementById("bar-fill").style.width = barWidth + "%";
 
   if (d.target_achieve > 0) {
     const maintainPos = Math.min((d.target_maintain / maxVal) * 100, 100);
     const achievePos = Math.min((d.target_achieve / maxVal) * 100, 100);
-    document.getElementById("gauge-maintain").style.left = maintainPos + "%";
-    document.getElementById("gauge-achieve").style.left = achievePos + "%";
-    document.getElementById("gauge-maintain-label").textContent = "維持 " + fmt(d.target_maintain);
-    document.getElementById("gauge-achieve-label").textContent = "達成 " + fmt(d.target_achieve);
+    document.getElementById("bar-maintain").style.left = maintainPos + "%";
+    document.getElementById("bar-achieve").style.left = achievePos + "%";
+    document.getElementById("bar-maintain-label").textContent = "維持 " + fmt(d.target_maintain);
+    document.getElementById("bar-achieve-label").textContent = "達成 " + fmt(d.target_achieve);
   }
-
-  const statusBadge = rate >= 100 ? '<span class="badge-achieve">達成</span>' :
-                      rate >= 80 ? '<span class="badge-maintain">維持圏</span>' :
-                      '<span class="badge-under">未達</span>';
-  document.getElementById("breakdown-body").innerHTML = `
-    <tr><td>アポ取得金額</td><td class="num">${fmt(d.apo_amount)}</td></tr>
-    <tr><td>キャンセル金額</td><td class="num" style="color:#ef4444">${d.cxl_amount > 0 ? '▲' + fmt(d.cxl_amount) : '-'}</td></tr>
-    <tr><td>FB金額</td><td class="num" style="color:#3b82f6">${d.fb_amount > 0 ? fmt(d.fb_amount) : '-'}</td></tr>
-    <tr><td><strong>売上合計</strong></td><td class="num"><strong>${fmt(d.sales)}</strong> ${statusBadge}</td></tr>
-    <tr><td>達成目標</td><td class="num">${d.target_achieve > 0 ? fmt(d.target_achieve) : '-'}</td></tr>
-    <tr><td>維持目標</td><td class="num">${d.target_maintain > 0 ? fmt(d.target_maintain) : '-'}</td></tr>
-  `;
 
   document.getElementById("loading").style.display = "none";
   document.getElementById("content").style.display = "block";

@@ -455,9 +455,10 @@
         <label class="upload-btn">ファイル選択<input class="upload-input" type="file" id="bulk-csv-file" accept=".csv"></label>
         <span class="upload-filename" id="bulk-csv-name">未選択</span>
         <button class="inc-save-btn" onclick="uploadBulkCsv()" style="height:32px;font-size:13px">アップロード</button>
+        <button class="confirm-btn" onclick="openTemplateModal()" style="height:32px;font-size:13px">📥 テンプレートDL</button>
       </div>
       <div class="inc-note">
-        ※ CSV列構成：社員番号, キャンペーン名, 金額<br>
+        ※ CSV列構成：社員番号, スタッフ名, キャンペーン名, 金額<br>
         ※ 同一キャンペーンの既存データは上書きされます
       </div>
       <div style="font-size:12px;margin-top:6px" id="bulk-upload-msg"></div>
@@ -470,7 +471,47 @@
     </div>
   </div>
 </div>
+<!-- テンプレートDLモーダル -->
+<div class="modal-overlay" id="template-modal">
+  <div class="modal">
+    <div class="modal-title">CSVテンプレートDL</div>
 
+    <div class="form-group">
+      <label class="form-label">キャンペーン選択</label>
+      <select class="form-input" id="template-campaign-select">
+        <option value="">-- キャンペーンを選択 --</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">対象スタッフの絞り込み</label>
+      <select class="form-input" id="template-filter-type" onchange="onTemplateFilterChange()">
+        <option value="all">A：全スタッフ</option>
+        <option value="site">B：サイト単位</option>
+        <option value="rank">C：ランク単位</option>
+        <option value="wage">D：時給単位</option>
+        <option value="custom">E：その他（個別選択）</option>
+      </select>
+    </div>
+
+    <div class="form-group" id="template-filter-value-group" style="display:none">
+      <label class="form-label" id="template-filter-value-label">絞り込み値</label>
+      <select class="form-input" id="template-filter-value"></select>
+    </div>
+
+    <div class="form-group" id="template-custom-group" style="display:none">
+      <label class="form-label">スタッフを個別選択</label>
+      <input class="form-input" type="text" id="template-staff-search" placeholder="名前で検索..." oninput="filterTemplateStaff()">
+      <div class="staff-select-box" id="template-staff-box" style="margin-top:6px"></div>
+    </div>
+
+    <div class="modal-msg" id="template-msg"></div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeTemplateModal()">キャンセル</button>
+      <button class="btn-submit" onclick="downloadTemplate()">📥 DL</button>
+    </div>
+  </div>
+</div>
 <!-- 達成状況詳細モーダル -->
 <div class="modal-overlay" id="status-detail-modal">
   <div class="modal modal-large">

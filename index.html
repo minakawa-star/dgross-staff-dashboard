@@ -226,16 +226,19 @@
     <span class="upload-label">① アポリスト</span>
     <label class="upload-btn">ファイル選択<input class="upload-input" type="file" id="apo-file" accept=".xlsx"></label>
     <span class="upload-filename" id="apo-name">未選択</span>
+    <button class="clear-btn" onclick="clearFile('apo')">✕</button>
   </div>
   <div class="upload-item">
     <span class="upload-label">② 生産性</span>
     <label class="upload-btn">ファイル選択<input class="upload-input" type="file" id="prod-file" accept=".csv"></label>
     <span class="upload-filename" id="prod-name">未選択</span>
+    <button class="clear-btn" onclick="clearFile('prod')">✕</button>
   </div>
   <div class="upload-item">
     <span class="upload-label">③ jinjer</span>
     <label class="upload-btn">ファイル選択<input class="upload-input" type="file" id="att-file" accept=".csv,.zip"></label>
     <span class="upload-filename" id="att-name">未選択</span>
+    <button class="clear-btn" onclick="clearFile('att')">✕</button>
   </div>
   <button class="update-btn" id="update-btn" onclick="uploadAll()">データ更新</button>
   <span class="status-msg" id="status-msg"></span>

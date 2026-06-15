@@ -415,6 +415,7 @@
         <select class="form-input" id="campaign-calc-type" onchange="onCalcTypeChange()">
           <option value="per_unit">件数×単価</option>
           <option value="fixed">固定額</option>
+          <option value="bulk">一括付与（CSV）</option>
         </select>
       </div>
     </div>
@@ -441,12 +442,27 @@
     <div class="form-group" id="campaign-resend-group">
       <div class="checkbox-row"><input type="checkbox" id="campaign-exclude-resend" checked><label for="campaign-exclude-resend">再送のアポは対象から除外する</label></div>
     </div>
-    <div class="form-group">
+    <div class="form-group" id="campaign-staff-group">
       <label class="form-label" id="campaign-staff-label">対象スタッフ（未選択＝全員対象）</label>
       <input class="form-input staff-select-search" type="text" id="staff-search" placeholder="名前で検索..." oninput="filterStaffCheckboxes()">
       <div class="staff-select-box" id="staff-checkbox-box"></div>
       <div class="target-all-note" id="campaign-staff-note">未選択の場合、全スタッフが対象になります</div>
     </div>
+
+    <div class="form-group" id="bulk-upload-group" style="display:none">
+      <label class="form-label">一括付与CSVアップロード</label>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+        <label class="upload-btn">ファイル選択<input class="upload-input" type="file" id="bulk-csv-file" accept=".csv"></label>
+        <span class="upload-filename" id="bulk-csv-name">未選択</span>
+        <button class="inc-save-btn" onclick="uploadBulkCsv()" style="height:32px;font-size:13px">アップロード</button>
+      </div>
+      <div class="inc-note">
+        ※ CSV列構成：社員番号, キャンペーン名, 金額<br>
+        ※ 同一キャンペーンの既存データは上書きされます
+      </div>
+      <div style="font-size:12px;margin-top:6px" id="bulk-upload-msg"></div>
+    </div>
+
     <div class="modal-msg" id="campaign-msg"></div>
     <div class="modal-btns">
       <button class="btn-cancel" onclick="closeCampaignModal()">キャンセル</button>
@@ -937,12 +953,22 @@ function onCategoryChange() {
 function onCalcTypeChange() {
   const calcType = document.getElementById("campaign-calc-type").value;
   const isFixed = calcType === "fixed";
+  const isBulk = calcType === "bulk";
+
   document.getElementById("campaign-amount-label").textContent = isFixed ? "付与金額（固定総額）" : "付与金額（1件あたり）";
-  document.getElementById("campaign-type-group").style.display = isFixed ? "none" : "block";
-  document.getElementById("campaign-resend-group").style.display = isFixed ? "none" : "block";
-  document.getElementById("campaign-staff-label").textContent = isFixed ? "対象スタッフ（1名以上選択してください）" : "対象スタッフ（未選択＝全員対象）";
-  document.getElementById("campaign-staff-note").textContent = isFixed ? "固定額の場合、選択したスタッフ全員に同額が付与されます" : "未選択の場合、全スタッフが対象になります";
-  document.getElementById("campaign-staff-note").style.color = isFixed ? "#d97a3f" : "#c9a07a";
+  document.getElementById("campaign-amount").closest(".form-group").style.display = isBulk ? "none" : "block";
+  document.getElementById("campaign-type-group").style.display = (isFixed || isBulk) ? "none" : "block";
+  document.getElementById("campaign-resend-group").style.display = (isFixed || isBulk) ? "none" : "block";
+  document.getElementById("campaign-staff-group").style.display = isBulk ? "none" : "block";
+
+  // 一括付与用CSVアップロードエリア
+  document.getElementById("bulk-upload-group").style.display = isBulk ? "block" : "none";
+
+  if (!isBulk) {
+    document.getElementById("campaign-staff-label").textContent = isFixed ? "対象スタッフ（1名以上選択してください）" : "対象スタッフ（未選択＝全員対象）";
+    document.getElementById("campaign-staff-note").textContent = isFixed ? "固定額の場合、選択したスタッフ全員に同額が付与されます" : "未選択の場合、全スタッフが対象になります";
+    document.getElementById("campaign-staff-note").style.color = isFixed ? "#d97a3f" : "#c9a07a";
+  }
 }
 
 function openCampaignModal() {

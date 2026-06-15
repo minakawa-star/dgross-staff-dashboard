@@ -944,7 +944,47 @@ function filterStaffCheckboxes() {
     row.style.display = row.getAttribute("data-name").includes(query) ? "flex" : "none";
   });
 }
+document.getElementById("bulk-csv-file").addEventListener("change", e => {
+  document.getElementById("bulk-csv-name").textContent = e.target.files[0]?.name || "未選択";
+});
 
+async function uploadBulkCsv() {
+  const msg = document.getElementById("bulk-upload-msg");
+  const file = document.getElementById("bulk-csv-file").files[0];
+  if (!file) { msg.style.color = "#d9534f"; msg.textContent = "CSVファイルを選択してください"; return; }
+
+  try {
+    msg.style.color = "#c9a07a"; msg.textContent = "アップロード中...";
+    const buf = await file.arrayBuffer();
+    const csvText = new TextDecoder("shift-jis").decode(buf);
+    const rows = parseCSV(csvText);
+
+    const records = rows.map(r => ({
+      staff_id: String(r["社員番号"] || "").trim(),
+      campaign_name: String(r["キャンペーン名"] || "").trim(),
+      amount: parseInt(String(r["金額"] || "0").replace(/,/g, "")) || 0,
+    })).filter(r => r.staff_id && r.campaign_name);
+
+    const res = await fetch(`${BASE_URL}/staff/upload/fb_bulk_json`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+      body: JSON.stringify({ records })
+    });
+    const data = await res.json();
+    if (data.error) {
+      msg.style.color = "#d9534f"; msg.textContent = data.error;
+    } else {
+      msg.style.color = "#2eb872";
+      msg.textContent = `${data.count}件アップロードしました`;
+      if (data.errors && data.errors.length > 0) {
+        msg.textContent += `（警告：${data.errors.join(" / ")}）`;
+      }
+      await loadData();
+    }
+  } catch(e) {
+    msg.style.color = "#d9534f"; msg.textContent = "エラー: " + e.message;
+  }
+}
 function onCategoryChange() {
   const sel = document.getElementById("campaign-category-select");
   document.getElementById("campaign-category-other").style.display = sel.value === "__other__" ? "block" : "none";
@@ -990,6 +1030,8 @@ function openCampaignModal() {
   document.querySelectorAll("#staff-checkbox-box input[type=checkbox]").forEach(c => c.checked = false);
   document.querySelectorAll("#staff-checkbox-box .staff-checkbox-row").forEach(r => r.style.display = "flex");
   document.getElementById("campaign-msg").textContent = "";
+  document.getElementById("bulk-upload-msg").textContent = "";
+  document.getElementById("bulk-csv-name").textContent = "未選択";
   onCalcTypeChange();
   document.getElementById("campaign-modal").classList.add("active");
 }

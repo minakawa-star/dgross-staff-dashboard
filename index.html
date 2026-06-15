@@ -993,7 +993,138 @@ async function uploadBulkCsv() {
   const msg = document.getElementById("bulk-upload-msg");
   const file = document.getElementById("bulk-csv-file").files[0];
   if (!file) { msg.style.color = "#d9534f"; msg.textContent = "CSVファイルを選択してください"; return; }
+// ============================================================
+// テンプレートDLモーダル
+// ============================================================
+function openTemplateModal() {
+  // bulkキャンペーンのみ表示
+  const bulkCampaigns = allCampaigns.filter(c => c.calc_type === "bulk");
+  const sel = document.getElementById("template-campaign-select");
+  sel.innerHTML = '<option value="">-- キャンペーンを選択 --</option>';
+  bulkCampaigns.forEach(c => {
+    sel.innerHTML += `<option value="${c.name}">${c.name}</option>`;
+  });
 
+  // テンプレートスタッフボックス初期化
+  buildTemplateStaffBoxes();
+
+  document.getElementById("template-filter-type").value = "all";
+  document.getElementById("template-filter-value-group").style.display = "none";
+  document.getElementById("template-custom-group").style.display = "none";
+  document.getElementById("template-msg").textContent = "";
+  document.getElementById("template-modal").classList.add("active");
+}
+
+function closeTemplateModal() {
+  document.getElementById("template-modal").classList.remove("active");
+}
+
+function buildTemplateStaffBoxes() {
+  const box = document.getElementById("template-staff-box");
+  const sorted = [...allData].sort((a, b) => a.name.localeCompare(b.name, 'ja'));
+  box.innerHTML = sorted.map(d => `
+    <div class="staff-checkbox-row" data-name="${d.name}">
+      <input type="checkbox" id="tmpl-chk-${d.staff_id}" value="${d.staff_id}">
+      <label for="tmpl-chk-${d.staff_id}">${d.name}（${d.site} / ${d.is_monthly ? '月給' : '¥' + d.hourly_wage}）</label>
+    </div>
+  `).join("");
+}
+
+function filterTemplateStaff() {
+  const query = document.getElementById("template-staff-search").value.trim();
+  document.querySelectorAll("#template-staff-box .staff-checkbox-row").forEach(row => {
+    row.style.display = row.getAttribute("data-name").includes(query) ? "flex" : "none";
+  });
+}
+
+function onTemplateFilterChange() {
+  const type = document.getElementById("template-filter-type").value;
+  const valueGroup = document.getElementById("template-filter-value-group");
+  const customGroup = document.getElementById("template-custom-group");
+  const valueLabel = document.getElementById("template-filter-value-label");
+  const valueSel = document.getElementById("template-filter-value");
+
+  valueGroup.style.display = "none";
+  customGroup.style.display = "none";
+
+  if (type === "site") {
+    valueLabel.textContent = "サイトを選択";
+    const sites = [...new Set(allData.map(d => d.site))].sort();
+    valueSel.innerHTML = sites.map(s => `<option value="${s}">${s}</option>`).join("");
+    valueGroup.style.display = "block";
+  } else if (type === "rank") {
+    valueLabel.textContent = "ランクを選択";
+    const ranks = ["トップ","ミドル","ルーキープラス","ルーキー","管理者","社員"];
+    valueSel.innerHTML = ranks.map(r => `<option value="${r}">${r}</option>`).join("");
+    valueGroup.style.display = "block";
+  } else if (type === "wage") {
+    valueLabel.textContent = "時給を選択";
+    const wages = [...new Set(allData.filter(d => !d.is_monthly && d.hourly_wage > 0).map(d => d.hourly_wage))].sort((a,b) => b - a);
+    valueSel.innerHTML = wages.map(w => `<option value="${w}">¥${w.toLocaleString()}</option>`).join("");
+    valueGroup.style.display = "block";
+  } else if (type === "custom") {
+    customGroup.style.display = "block";
+  }
+}
+
+function downloadTemplate() {
+  const msg = document.getElementById("template-msg");
+  const campaignName = document.getElementById("template-campaign-select").value;
+  if (!campaignName) {
+    msg.style.color = "#d9534f";
+    msg.textContent = "キャンペーンを選択してください";
+    return;
+  }
+
+  const type = document.getElementById("template-filter-type").value;
+  let targets = [...allData];
+
+  if (type === "site") {
+    const val = document.getElementById("template-filter-value").value;
+    targets = targets.filter(d => d.site === val);
+  } else if (type === "rank") {
+    const val = document.getElementById("template-filter-value").value;
+    targets = targets.filter(d => d.rank === val);
+  } else if (type === "wage") {
+    const val = parseInt(document.getElementById("template-filter-value").value);
+    targets = targets.filter(d => d.hourly_wage === val);
+  } else if (type === "custom") {
+    const checked = [];
+    document.querySelectorAll("#template-staff-box input[type=checkbox]:checked").forEach(c => checked.push(c.value));
+    if (checked.length === 0) {
+      msg.style.color = "#d9534f";
+      msg.textContent = "スタッフを1名以上選択してください";
+      return;
+    }
+    targets = targets.filter(d => checked.includes(d.staff_id));
+  }
+
+  if (targets.length === 0) {
+    msg.style.color = "#d9534f";
+    msg.textContent = "対象スタッフが0名です";
+    return;
+  }
+
+  // CSV生成
+  const header = "社員番号,スタッフ名,キャンペーン名,金額";
+  const rows = targets.sort((a,b) => a.name.localeCompare(b.name, 'ja')).map(d =>
+    `${d.staff_id},${d.name},${campaignName},0`
+  );
+  const csvContent = [header, ...rows].join("\n");
+
+  // BOM付きUTF-8でDL（Excelで開けるように）
+  const bom = "\uFEFF";
+  const blob = new Blob([bom + csvContent], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `FB一括付与_${campaignName}_テンプレート.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+
+  msg.style.color = "#2eb872";
+  msg.textContent = `${targets.length}名分のテンプレートをDLしました`;
+}
   try {
     msg.style.color = "#c9a07a"; msg.textContent = "アップロード中...";
     const buf = await file.arrayBuffer();

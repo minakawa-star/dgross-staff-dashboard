@@ -1480,7 +1480,18 @@ function parseCSV(text) {
 // ============================================================
 // テンプレートDLモーダル
 // ============================================================
-function openTemplateModal() {
+async function openTemplateModal() {
+  // キャンペーンを毎回取得する
+  try {
+    const res = await fetch(`${BASE_URL}/staff/fb_campaigns`, {
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+    const data = await res.json();
+    allCampaigns = data.data || [];
+  } catch(e) {
+    console.error("キャンペーン取得エラー:", e);
+  }
+
   const bulkCampaigns = allCampaigns.filter(c => c.calc_type === "bulk");
   const sel = document.getElementById("template-campaign-select");
   sel.innerHTML = '<option value="">-- キャンペーンを選択 --</option>';

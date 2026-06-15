@@ -6,139 +6,181 @@
 <title>PT事業部 スタッフ実績管理</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { background: #fdfaf7; color: #2a2622; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 14px; }
+  body { background: #fdfaf7; color: #2a2622; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 15px; }
 
-  .header { background: #fff; border-bottom: 1px solid #f0e4da; padding: 0 24px; height: 56px; display: flex; align-items: center; gap: 24px; position: sticky; top: 0; z-index: 100; }
-  .header-title { font-size: 15px; font-weight: 700; color: #2a2622; white-space: nowrap; }
+  .header { background: #fff; border-bottom: 1px solid #f0e4da; padding: 0 24px; height: 60px; display: flex; align-items: center; gap: 24px; position: sticky; top: 0; z-index: 100; }
+  .header-title { font-size: 16px; font-weight: 700; color: #2a2622; white-space: nowrap; }
   .header-divider { width: 1px; height: 20px; background: #f0e4da; }
   .header-controls { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; flex: 1; }
   .header-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
-  .logout-btn { background: transparent; border: 1px solid #f0e4da; color: #b08968; padding: 5px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; }
+  .logout-btn { background: transparent; border: 1px solid #f0e4da; color: #b08968; padding: 5px 12px; border-radius: 6px; font-size: 13px; cursor: pointer; }
   .logout-btn:hover { border-color: #e8a87c; color: #2a2622; }
+  .ext-link-btn { background: #fff7f1; border: 1px solid #e8a87c; color: #d97a3f; padding: 5px 14px; border-radius: 6px; font-size: 13px; cursor: pointer; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+  .ext-link-btn:hover { background: #fdeee3; }
 
   select, input[type="month"], input[type="text"], input[type="number"], input[type="date"] {
     background: #fff7f1; border: 1px solid #f0e4da; color: #2a2622;
-    padding: 6px 10px; border-radius: 6px; font-size: 13px; cursor: pointer; outline: none;
+    padding: 6px 10px; border-radius: 6px; font-size: 14px; cursor: pointer; outline: none;
   }
   select:hover, input[type="month"]:hover { border-color: #e8a87c; }
 
   .upload-section { background: #fff; border-bottom: 1px solid #f0e4da; padding: 12px 24px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
   .upload-item { display: flex; align-items: center; gap: 8px; }
-  .upload-label { font-size: 12px; color: #c9a07a; white-space: nowrap; }
+  .upload-label { font-size: 13px; color: #c9a07a; white-space: nowrap; }
   .upload-input { display: none; }
-  .upload-btn { background: #fff7f1; border: 1px solid #f0e4da; color: #2a2622; padding: 5px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; white-space: nowrap; }
+  .upload-btn { background: #fff7f1; border: 1px solid #f0e4da; color: #2a2622; padding: 5px 12px; border-radius: 6px; font-size: 13px; cursor: pointer; white-space: nowrap; }
   .upload-btn:hover { border-color: #e8a87c; }
   .upload-filename { font-size: 12px; color: #d97a3f; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .update-btn { background: #e8a87c; border: none; color: #fff; padding: 6px 16px; border-radius: 6px; font-size: 13px; cursor: pointer; font-weight: 600; white-space: nowrap; margin-left: 8px; }
+  .update-btn { background: #e8a87c; border: none; color: #fff; padding: 6px 18px; border-radius: 6px; font-size: 14px; cursor: pointer; font-weight: 600; white-space: nowrap; margin-left: 8px; }
   .update-btn:hover { background: #d97a3f; }
   .update-btn:disabled { background: #f0e4da; color: #c9a07a; cursor: not-allowed; }
-  .status-msg { font-size: 12px; color: #c9a07a; }
+  .status-msg { font-size: 13px; color: #c9a07a; }
 
-  .confirm-btn { background: #fff; border: 1px solid #e8a87c; color: #d97a3f; padding: 6px 16px; border-radius: 6px; font-size: 13px; cursor: pointer; font-weight: 600; white-space: nowrap; }
+  .confirm-btn { background: #fff; border: 1px solid #e8a87c; color: #d97a3f; padding: 6px 16px; border-radius: 6px; font-size: 14px; cursor: pointer; font-weight: 600; white-space: nowrap; }
   .confirm-btn:hover { background: #fdeee3; }
   .confirm-btn:disabled { background: #f0e4da; color: #c9a07a; border-color: #f0e4da; cursor: not-allowed; }
 
-  .summary-bar { background: #fff; padding: 16px 24px; display: flex; gap: 24px; border-bottom: 1px solid #f0e4da; flex-wrap: wrap; }
+  /* サマリーバー */
+  .summary-bar { background: #fff; padding: 16px 24px; display: flex; gap: 20px; border-bottom: 1px solid #f0e4da; flex-wrap: wrap; align-items: center; }
   .summary-item { display: flex; flex-direction: column; gap: 2px; }
-  .summary-label { font-size: 11px; color: #c9a07a; }
-  .summary-value { font-size: 18px; font-weight: 800; color: #2a2622; }
+  .summary-label { font-size: 12px; color: #c9a07a; }
+  .summary-value { font-size: 20px; font-weight: 800; color: #2a2622; }
+  .summary-divider { width: 1px; height: 40px; background: #f0e4da; }
+
+  /* 進捗バッジ */
+  .progress-badge { background: #fff7f1; border: 1px solid #f0e4da; border-radius: 8px; padding: 6px 14px; display: flex; flex-direction: column; gap: 2px; }
+  .progress-badge-title { font-size: 11px; color: #c9a07a; }
+  .progress-badge-value { font-size: 14px; font-weight: 700; color: #2a2622; }
+
+  /* 達成圏バッジ（クリック可能） */
+  .status-badge { border-radius: 8px; padding: 6px 14px; display: flex; flex-direction: column; gap: 2px; cursor: pointer; border: 1px solid transparent; transition: all 0.2s; }
+  .status-badge:hover { opacity: 0.85; transform: translateY(-1px); }
+  .status-badge-achieve { background: #fdeee3; border-color: #e8a87c; }
+  .status-badge-maintain { background: #fff4e0; border-color: #f0c987; }
+  .status-badge-under { background: #fdecec; border-color: #e89a9a; }
+  .status-badge-label { font-size: 11px; font-weight: 600; }
+  .status-badge-achieve .status-badge-label { color: #d97a3f; }
+  .status-badge-maintain .status-badge-label { color: #cf9a3a; }
+  .status-badge-under .status-badge-label { color: #d9534f; }
+  .status-badge-count { font-size: 20px; font-weight: 800; }
+  .status-badge-achieve .status-badge-count { color: #d97a3f; }
+  .status-badge-maintain .status-badge-count { color: #cf9a3a; }
+  .status-badge-under .status-badge-count { color: #d9534f; }
 
   /* タブ */
   .tab-bar { background: #fff; border-bottom: 1px solid #f0e4da; padding: 0 24px; display: flex; gap: 4px; }
-  .tab-btn { background: transparent; border: none; padding: 12px 20px; font-size: 13px; font-weight: 600; color: #c9a07a; cursor: pointer; border-bottom: 2px solid transparent; }
+  .tab-btn { background: transparent; border: none; padding: 14px 22px; font-size: 14px; font-weight: 600; color: #c9a07a; cursor: pointer; border-bottom: 2px solid transparent; }
   .tab-btn.active { color: #d97a3f; border-bottom-color: #e8a87c; }
   .tab-content { display: none; }
   .tab-content.active { display: block; }
 
+  /* テーブル */
   .table-wrap { padding: 16px 24px; overflow-x: auto; }
   table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 12px; overflow: hidden; }
-  th { background: #fff7f1; color: #c9a07a; font-size: 11px; font-weight: 600; text-align: left; padding: 10px 12px; border-bottom: 1px solid #f0e4da; white-space: nowrap; cursor: pointer; user-select: none; }
+  thead { position: sticky; top: 60px; z-index: 10; }
+  th { background: #fff7f1; color: #c9a07a; font-size: 12px; font-weight: 700; text-align: left; padding: 12px 14px; border-bottom: 2px solid #f0e4da; white-space: nowrap; cursor: pointer; user-select: none; }
   th:hover { color: #d97a3f; }
-  td { padding: 10px 12px; border-bottom: 1px solid #f7eee5; white-space: nowrap; font-size: 13px; }
+  td { padding: 12px 14px; border-bottom: 1px solid #f7eee5; white-space: nowrap; font-size: 14px; }
   tr:last-child td { border-bottom: none; }
   tr:hover td { background: #fffaf5; }
   .staff-link { color: #d97a3f; text-decoration: none; cursor: pointer; font-weight: 600; }
   .staff-link:hover { text-decoration: underline; }
 
   .rate-cell { display: flex; align-items: center; gap: 8px; }
-  .rate-bar-bg { width: 80px; height: 5px; background: #f7eee5; border-radius: 3px; overflow: hidden; }
+  .rate-bar-bg { width: 80px; height: 6px; background: #f7eee5; border-radius: 3px; overflow: hidden; }
   .rate-bar { height: 100%; border-radius: 3px; transition: width 0.3s; }
-  .rate-text { font-size: 13px; font-weight: 700; min-width: 45px; }
+  .rate-text { font-size: 14px; font-weight: 700; min-width: 50px; }
 
-  .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+  .badge { display: inline-block; padding: 3px 9px; border-radius: 4px; font-size: 12px; font-weight: 600; }
   .badge-top { background: #fdeee3; color: #d97a3f; }
   .badge-middle { background: #eaf2fd; color: #5a9cf8; }
   .badge-rookie-plus { background: #eafaf0; color: #2eb872; }
   .badge-rookie { background: #f0faf4; color: #5fc98a; }
   .badge-manager { background: #fff4e0; color: #cf9a3a; }
   .badge-staff { background: #f3f0ec; color: #a89884; }
-  .monthly-tag { font-size: 10px; color: #b08968; background: #fff4e8; padding: 1px 5px; border-radius: 3px; margin-left: 4px; }
-  .confirmed-tag { font-size: 10px; color: #2eb872; background: #eafaf0; padding: 1px 5px; border-radius: 3px; }
-  .incentive-na { font-size: 11px; color: #c9a07a; }
+  .monthly-tag { font-size: 11px; color: #b08968; background: #fff4e8; padding: 1px 5px; border-radius: 3px; margin-left: 4px; }
+  .confirmed-tag { font-size: 11px; color: #2eb872; background: #eafaf0; padding: 1px 5px; border-radius: 3px; }
+  .incentive-na { font-size: 12px; color: #c9a07a; }
 
   .planned-cell { display: flex; align-items: center; gap: 4px; }
-  .planned-input-cell { width: 50px; padding: 4px 6px; border: 1px solid #f0e4da; border-radius: 4px; font-size: 12px; text-align: center; background: #fff7f1; color: #2a2622; }
-  .planned-input-cell:disabled { background: #f7eee5; color: #c9a07a; }
-  .planned-save-cell { background: #e8a87c; border: none; color: #fff; padding: 4px 8px; border-radius: 4px; font-size: 11px; cursor: pointer; }
+  .planned-input-cell { width: 54px; padding: 4px 6px; border: 1px solid #f0e4da; border-radius: 4px; font-size: 13px; text-align: center; background: #fff7f1; color: #2a2622; }
+  .planned-save-cell { background: #e8a87c; border: none; color: #fff; padding: 4px 8px; border-radius: 4px; font-size: 12px; cursor: pointer; }
   .planned-save-cell:hover { background: #d97a3f; }
-  .planned-save-cell:disabled { background: #f0e4da; color: #c9a07a; cursor: not-allowed; }
+
+  /* 残り目標セル */
+  .remain-cell { display: flex; flex-direction: column; gap: 2px; }
+  .remain-achieve { font-size: 12px; font-weight: 600; }
+  .remain-maintain { font-size: 11px; color: #8a7a6d; }
+  .remain-cleared { font-size: 12px; font-weight: 700; color: #d97a3f; }
 
   /* FBキャンペーン */
   .fb-toolbar { padding: 16px 24px 0; display: flex; justify-content: flex-end; }
-  .add-campaign-btn { background: #e8a87c; border: none; color: #fff; padding: 8px 18px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; }
+  .add-campaign-btn { background: #e8a87c; border: none; color: #fff; padding: 8px 18px; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; }
   .add-campaign-btn:hover { background: #d97a3f; }
-  .cat-pill { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+  .cat-pill { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; }
   .cat-bonus { background: #eafaf0; color: #2eb872; }
   .cat-penalty { background: #fdecec; color: #d9534f; }
   .cat-default { background: #eaf2fd; color: #5a9cf8; }
-  .calc-pill { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; background: #f3f0ec; color: #8a7a6d; }
-  .action-btn { background: transparent; border: 1px solid #f0e4da; color: #8a7a6d; padding: 4px 10px; border-radius: 4px; font-size: 11px; cursor: pointer; margin-right: 4px; }
+  .calc-pill { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 12px; background: #f3f0ec; color: #8a7a6d; }
+  .action-btn { background: transparent; border: 1px solid #f0e4da; color: #8a7a6d; padding: 4px 10px; border-radius: 4px; font-size: 12px; cursor: pointer; margin-right: 4px; }
   .action-btn:hover { border-color: #e8a87c; color: #d97a3f; }
   .action-btn.delete:hover { border-color: #d9534f; color: #d9534f; }
 
   /* インセンティブ管理 */
   .inc-section { background: #fff; border: 1px solid #f5e6d8; border-radius: 14px; padding: 24px; margin-bottom: 16px; }
-  .inc-section-title { font-size: 14px; font-weight: 700; color: #2a2622; margin-bottom: 4px; }
-  .inc-section-sub { font-size: 12px; color: #c9a07a; margin-bottom: 16px; }
+  .inc-section-title { font-size: 15px; font-weight: 700; color: #2a2622; margin-bottom: 4px; }
+  .inc-section-sub { font-size: 13px; color: #c9a07a; margin-bottom: 16px; }
   .inc-form-row { display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; }
   .inc-form-group { display: flex; flex-direction: column; gap: 4px; }
-  .inc-form-group label { font-size: 12px; color: #8a7a6d; }
-  .inc-save-btn { background: #e8a87c; border: none; color: #fff; padding: 8px 18px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; height: 34px; }
+  .inc-form-group label { font-size: 13px; color: #8a7a6d; }
+  .inc-save-btn { background: #e8a87c; border: none; color: #fff; padding: 8px 18px; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; height: 36px; }
   .inc-save-btn:hover { background: #d97a3f; }
   .inc-save-btn:disabled { background: #f0e4da; color: #c9a07a; cursor: not-allowed; }
-  .inc-msg { font-size: 12px; margin-top: 8px; }
-  .inc-note { font-size: 11px; color: #c9a07a; margin-top: 8px; line-height: 1.6; }
+  .inc-msg { font-size: 13px; margin-top: 8px; }
+  .inc-note { font-size: 12px; color: #c9a07a; margin-top: 8px; line-height: 1.6; }
 
   /* モーダル */
   .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(42,38,34,0.4); z-index: 200; align-items: center; justify-content: center; }
   .modal-overlay.active { display: flex; }
-  .modal { background: #fff; border: 1px solid #f0e4da; border-radius: 14px; padding: 32px; width: 100%; max-width: 480px; max-height: 90vh; overflow-y: auto; }
-  .modal-large { max-width: 600px; }
-  .modal-title { font-size: 16px; font-weight: 700; color: #2a2622; margin-bottom: 24px; }
+  .modal { background: #fff; border: 1px solid #f0e4da; border-radius: 14px; padding: 32px; width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto; }
+  .modal-large { max-width: 640px; }
+  .modal-title { font-size: 17px; font-weight: 700; color: #2a2622; margin-bottom: 24px; }
   .form-group { margin-bottom: 16px; }
-  .form-label { font-size: 12px; color: #c9a07a; margin-bottom: 6px; display: block; }
-  .form-input { width: 100%; background: #fff7f1; border: 1px solid #f0e4da; color: #2a2622; padding: 8px 12px; border-radius: 6px; font-size: 13px; outline: none; }
+  .form-label { font-size: 13px; color: #c9a07a; margin-bottom: 6px; display: block; }
+  .form-input { width: 100%; background: #fff7f1; border: 1px solid #f0e4da; color: #2a2622; padding: 8px 12px; border-radius: 6px; font-size: 14px; outline: none; }
   .form-input:focus { border-color: #e8a87c; }
   .form-row { display: flex; gap: 12px; }
   .form-row .form-group { flex: 1; }
   .modal-btns { display: flex; gap: 8px; justify-content: flex-end; margin-top: 24px; }
-  .btn-cancel { background: transparent; border: 1px solid #f0e4da; color: #c9a07a; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; }
-  .btn-submit { background: #e8a87c; border: none; color: #fff; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; }
+  .btn-cancel { background: transparent; border: 1px solid #f0e4da; color: #c9a07a; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 14px; }
+  .btn-submit { background: #e8a87c; border: none; color: #fff; padding: 8px 18px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600; }
   .btn-submit:disabled { background: #f0e4da; color: #c9a07a; cursor: not-allowed; }
-  .modal-msg { font-size: 12px; margin-top: 8px; text-align: center; }
-  .register-btn { background: #fff7f1; border: 1px solid #f0e4da; color: #2a2622; padding: 5px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; }
+  .modal-msg { font-size: 13px; margin-top: 8px; text-align: center; }
+  .register-btn { background: #fff7f1; border: 1px solid #f0e4da; color: #2a2622; padding: 5px 12px; border-radius: 6px; font-size: 13px; cursor: pointer; }
   .register-btn:hover { border-color: #e8a87c; color: #d97a3f; }
 
-  .checkbox-row { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; font-size: 13px; }
+  .checkbox-row { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; font-size: 14px; }
   .checkbox-row input { cursor: pointer; }
   .checkbox-row label { cursor: pointer; }
 
   .staff-select-box { border: 1px solid #f0e4da; border-radius: 6px; max-height: 180px; overflow-y: auto; padding: 8px; background: #fff7f1; margin-top: 6px; }
   .staff-select-search { margin-bottom: 8px; width: 100%; }
-  .staff-checkbox-row { display: flex; align-items: center; gap: 6px; padding: 3px 0; font-size: 12px; }
-  .target-all-note { font-size: 11px; color: #c9a07a; margin-top: 4px; }
+  .staff-checkbox-row { display: flex; align-items: center; gap: 6px; padding: 3px 0; font-size: 13px; }
+  .target-all-note { font-size: 12px; color: #c9a07a; margin-top: 4px; }
 
-  .loading { text-align: center; padding: 60px; color: #c9a07a; }
+  /* 達成状況詳細モーダル */
+  .status-detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  .status-detail-section { background: #fff7f1; border-radius: 10px; padding: 14px; }
+  .status-detail-section-title { font-size: 12px; font-weight: 700; color: #c9a07a; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .status-detail-row { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; border-bottom: 1px solid #f0e4da; font-size: 13px; }
+  .status-detail-row:last-child { border-bottom: none; }
+  .status-detail-name { color: #2a2622; }
+  .status-detail-rate { font-weight: 700; }
+  .rate-achieve { color: #d97a3f; }
+  .rate-maintain { color: #cf9a3a; }
+  .rate-under { color: #d9534f; }
+
+  .loading { text-align: center; padding: 60px; color: #c9a07a; font-size: 15px; }
   .num { font-variant-numeric: tabular-nums; }
   .num-green { color: #d97a3f; }
   .num-yellow { color: #cf9a3a; }
@@ -172,6 +214,7 @@
     <button class="confirm-btn" id="confirm-btn" onclick="confirmMonth()">この月を確定する</button>
   </div>
   <div class="header-right">
+    <a class="ext-link-btn" href="https://app.dforce.work/cancel-reapproach" target="_blank">🔗 D-force</a>
     <button class="register-btn" onclick="openRegisterModal()">＋ スタッフ登録</button>
     <button class="logout-btn" onclick="logout()">ログアウト</button>
   </div>
@@ -223,6 +266,7 @@
           <th onclick="sortTable('target_achieve')">達成目標</th>
           <th onclick="sortTable('target_maintain')">維持目標</th>
           <th onclick="sortTable('achieve_rate')">達成率</th>
+          <th>目標までの残り</th>
           <th onclick="sortTable('work_days')">出勤日数</th>
           <th onclick="sortTable('hourly_wage')">時給</th>
           <th>出勤予定数</th>
@@ -263,7 +307,6 @@
 <!-- インセンティブ管理タブ -->
 <div class="tab-content" id="tab-inc">
   <div class="table-wrap">
-
     <div class="inc-section">
       <div class="inc-section-title">インセンティブ対象時給範囲</div>
       <div class="inc-section-sub">この範囲内の時給のスタッフのみ、インセンティブ目標を計算します</div>
@@ -283,7 +326,7 @@
 
     <div class="inc-section">
       <div class="inc-section-title">インセンティブ給与データアップロード</div>
-      <div class="inc-section-sub">管理本部から共有される給与データCSVをアップロードします（社員番号・基本給・残業手当・非課税通勤手当を使用）</div>
+      <div class="inc-section-sub">管理本部から共有される給与データCSVをアップロードします</div>
       <div class="inc-form-row">
         <div class="inc-form-group">
           <label>対象月（このデータの月）</label>
@@ -291,19 +334,18 @@
         </div>
         <div class="inc-form-group">
           <label>給与データCSV</label>
-          <label class="upload-btn" style="height:34px;display:flex;align-items:center">ファイル選択<input class="upload-input" type="file" id="inc-payroll-file" accept=".csv"></label>
+          <label class="upload-btn" style="height:36px;display:flex;align-items:center">ファイル選択<input class="upload-input" type="file" id="inc-payroll-file" accept=".csv"></label>
         </div>
         <span class="upload-filename" id="inc-payroll-name">未選択</span>
         <button class="inc-save-btn" onclick="uploadIncentivePayroll()">アップロード</button>
       </div>
       <div class="inc-msg" id="inc-payroll-msg"></div>
       <div class="inc-note">
-        ※ このデータは「対象月」の2ヶ月後のインセンティブ計算に使用されます（例：4月分データ → 6月のインセンティブ計算で使用）<br>
+        ※ このデータは「対象月」の2ヶ月後のインセンティブ計算に使用されます<br>
         ※ CSVの列構成：社員番号、氏名、在籍区分、基本給、残業手当、非課税通勤手当<br>
         ※ インセンティブ目標 = (基本給 + 残業手当 + 非課税通勤手当) × 売上比重
       </div>
     </div>
-
   </div>
 </div>
 
@@ -347,12 +389,10 @@
   <div class="modal modal-large">
     <div class="modal-title" id="campaign-modal-title">新規FBキャンペーン作成</div>
     <input type="hidden" id="campaign-id">
-
     <div class="form-group">
       <label class="form-label">キャンペーン名</label>
       <input class="form-input" id="campaign-name" placeholder="例：6月行動量ボーナス">
     </div>
-
     <div class="form-row">
       <div class="form-group">
         <label class="form-label">カテゴリ</label>
@@ -374,7 +414,6 @@
         </select>
       </div>
     </div>
-
     <div class="form-row">
       <div class="form-group">
         <label class="form-label">開始日</label>
@@ -385,46 +424,40 @@
         <input class="form-input" type="date" id="campaign-end">
       </div>
     </div>
-
     <div class="form-group">
       <label class="form-label" id="campaign-amount-label">付与金額（1件あたり）</label>
       <input class="form-input" type="number" id="campaign-amount" placeholder="例：1000">
     </div>
-
     <div class="form-group" id="campaign-type-group">
       <label class="form-label">対象種別（未選択＝全種別が対象）</label>
-      <div class="checkbox-row">
-        <input type="checkbox" id="type-new" value="新規">
-        <label for="type-new">新規</label>
-      </div>
-      <div class="checkbox-row">
-        <input type="checkbox" id="type-new-next" value="新規【翌営業日】">
-        <label for="type-new-next">新規【翌営業日】</label>
-      </div>
-      <div class="checkbox-row">
-        <input type="checkbox" id="type-cancel-readjust" value="キャンセルの再調整">
-        <label for="type-cancel-readjust">キャンセルの再調整</label>
-      </div>
+      <div class="checkbox-row"><input type="checkbox" id="type-new" value="新規"><label for="type-new">新規</label></div>
+      <div class="checkbox-row"><input type="checkbox" id="type-new-next" value="新規【翌営業日】"><label for="type-new-next">新規【翌営業日】</label></div>
+      <div class="checkbox-row"><input type="checkbox" id="type-cancel-readjust" value="キャンセルの再調整"><label for="type-cancel-readjust">キャンセルの再調整</label></div>
     </div>
-
     <div class="form-group" id="campaign-resend-group">
-      <div class="checkbox-row">
-        <input type="checkbox" id="campaign-exclude-resend" checked>
-        <label for="campaign-exclude-resend">再送のアポは対象から除外する</label>
-      </div>
+      <div class="checkbox-row"><input type="checkbox" id="campaign-exclude-resend" checked><label for="campaign-exclude-resend">再送のアポは対象から除外する</label></div>
     </div>
-
     <div class="form-group">
       <label class="form-label" id="campaign-staff-label">対象スタッフ（未選択＝全員対象）</label>
       <input class="form-input staff-select-search" type="text" id="staff-search" placeholder="名前で検索..." oninput="filterStaffCheckboxes()">
       <div class="staff-select-box" id="staff-checkbox-box"></div>
       <div class="target-all-note" id="campaign-staff-note">未選択の場合、全スタッフが対象になります</div>
     </div>
-
     <div class="modal-msg" id="campaign-msg"></div>
     <div class="modal-btns">
       <button class="btn-cancel" onclick="closeCampaignModal()">キャンセル</button>
       <button class="btn-submit" id="campaign-submit" onclick="saveCampaign()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 達成状況詳細モーダル -->
+<div class="modal-overlay" id="status-detail-modal">
+  <div class="modal modal-large">
+    <div class="modal-title" id="status-detail-title">達成状況詳細</div>
+    <div class="status-detail-grid" id="status-detail-grid"></div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeStatusDetail()">閉じる</button>
     </div>
   </div>
 </div>
@@ -472,32 +505,24 @@ function logout() {
 // タブ切り替え
 // ============================================================
 function switchTab(tab) {
-  document.getElementById("tab-summary").classList.toggle("active", tab === "summary");
-  document.getElementById("tab-fb").classList.toggle("active", tab === "fb");
-  document.getElementById("tab-inc").classList.toggle("active", tab === "inc");
-  document.getElementById("tab-summary-btn").classList.toggle("active", tab === "summary");
-  document.getElementById("tab-fb-btn").classList.toggle("active", tab === "fb");
-  document.getElementById("tab-inc-btn").classList.toggle("active", tab === "inc");
-  if (tab === "fb" && allCampaigns.length === 0) {
-    loadCampaigns();
-  }
-  if (tab === "inc") {
-    loadIncentiveSettings();
-  }
+  ["summary","fb","inc"].forEach(t => {
+    document.getElementById(`tab-${t}`).classList.toggle("active", t === tab);
+    document.getElementById(`tab-${t}-btn`).classList.toggle("active", t === tab);
+  });
+  if (tab === "fb" && allCampaigns.length === 0) loadCampaigns();
+  if (tab === "inc") loadIncentiveSettings();
 }
 
 // ============================================================
-// スタッフ登録モーダル
+// スタッフ登録
 // ============================================================
 function openRegisterModal() {
   document.getElementById("register-modal").classList.add("active");
 }
-
 function closeRegisterModal() {
   document.getElementById("register-modal").classList.remove("active");
   document.getElementById("reg-msg").textContent = "";
 }
-
 async function registerStaff() {
   const btn = document.getElementById("reg-submit");
   const msg = document.getElementById("reg-msg");
@@ -505,10 +530,7 @@ async function registerStaff() {
   try {
     const res = await fetch(`${BASE_URL}/staff/register`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`
-      },
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
       body: JSON.stringify({
         staff_id: document.getElementById("reg-staff-id").value.trim(),
         staff_name: document.getElementById("reg-staff-name").value.trim(),
@@ -518,20 +540,10 @@ async function registerStaff() {
       })
     });
     const data = await res.json();
-    if (data.error) {
-      msg.style.color = "#d9534f";
-      msg.textContent = data.error;
-    } else {
-      msg.style.color = "#2eb872";
-      msg.textContent = "登録完了しました";
-      setTimeout(closeRegisterModal, 1500);
-    }
-  } catch(e) {
-    msg.style.color = "#d9534f";
-    msg.textContent = "通信エラー";
-  } finally {
-    btn.disabled = false;
-  }
+    if (data.error) { msg.style.color = "#d9534f"; msg.textContent = data.error; }
+    else { msg.style.color = "#2eb872"; msg.textContent = "登録完了しました"; setTimeout(closeRegisterModal, 1500); }
+  } catch(e) { msg.style.color = "#d9534f"; msg.textContent = "通信エラー"; }
+  finally { btn.disabled = false; }
 }
 
 // ============================================================
@@ -562,6 +574,32 @@ function getFilteredData() {
   });
 }
 
+function getBusinessDaysInfo(month) {
+  // 簡易営業日計算（土日除く）
+  const [y, m] = month.split("-").map(Number);
+  const today = new Date();
+  const daysInMonth = new Date(y, m, 0).getDate();
+  let totalBizDays = 0;
+  let elapsedBizDays = 0;
+  let lastUpdateDate = null;
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dt = new Date(y, m - 1, d);
+    const dow = dt.getDay();
+    if (dow !== 0 && dow !== 6) {
+      totalBizDays++;
+      if (dt <= today) {
+        elapsedBizDays++;
+        lastUpdateDate = dt;
+      }
+    }
+  }
+  const lastStr = lastUpdateDate
+    ? `${lastUpdateDate.getMonth() + 1}月${lastUpdateDate.getDate()}日`
+    : "-";
+  return { totalBizDays, elapsedBizDays, lastStr };
+}
+
 function renderTable() {
   const data = getFilteredData();
   data.sort((a, b) => {
@@ -584,28 +622,47 @@ function renderTable() {
     const monthlyTag = d.is_monthly ? '<span class="monthly-tag">月給</span>' : "";
     const wageDisplay = d.is_monthly ? '<span style="color:#cf9a3a">月給制</span>' : d.hourly_wage > 0 ? '¥' + d.hourly_wage.toLocaleString() : '-';
 
+    // 出勤予定数
     let plannedCell;
     if (d.is_confirmed) {
-      plannedCell = `
-        <div class="planned-cell">
-          <input type="number" class="planned-input-cell" id="planned-${d.staff_id}" value="${d.planned_work_days || 0}" min="0" max="31">
-          <button class="planned-save-cell" onclick="savePlanned('${d.staff_id}')">更新</button>
-          <span class="confirmed-tag">確定済</span>
-        </div>`;
+      plannedCell = `<div class="planned-cell">
+        <input type="number" class="planned-input-cell" id="planned-${d.staff_id}" value="${d.planned_work_days || 0}" min="0" max="31">
+        <button class="planned-save-cell" onclick="savePlanned('${d.staff_id}')">更新</button>
+        <span class="confirmed-tag">確定済</span>
+      </div>`;
     } else {
-      plannedCell = `
-        <div class="planned-cell">
-          <input type="number" class="planned-input-cell" id="planned-${d.staff_id}" value="${d.planned_work_days || ''}" min="0" max="31" placeholder="-">
-          <button class="planned-save-cell" onclick="savePlanned('${d.staff_id}')">保存</button>
-        </div>`;
+      plannedCell = `<div class="planned-cell">
+        <input type="number" class="planned-input-cell" id="planned-${d.staff_id}" value="${d.planned_work_days || ''}" min="0" max="31" placeholder="-">
+        <button class="planned-save-cell" onclick="savePlanned('${d.staff_id}')">保存</button>
+      </div>`;
     }
 
-    // インセンティブ目標セル
+    // インセンティブ目標
     let incentiveCell;
     if (d.incentive_status === "ok") {
       incentiveCell = `<span class="num">${fmt(d.incentive_target)}</span>`;
     } else {
       incentiveCell = `<span class="incentive-na">${d.incentive_status}</span>`;
+    }
+
+    // 目標までの残り
+    let remainCell = '<span class="incentive-na">-</span>';
+    if (d.target_achieve > 0 || d.target_maintain > 0) {
+      const remainAchieve = d.target_achieve - d.sales;
+      const remainMaintain = d.target_maintain - d.sales;
+
+      let achieveStr, maintainStr;
+      if (remainAchieve <= 0) {
+        achieveStr = `<span class="remain-cleared">達成！+${fmtNum(Math.abs(remainAchieve))}</span>`;
+      } else {
+        achieveStr = `<span class="remain-achieve" style="color:#d9534f">達成まで▲${fmtNum(remainAchieve)}</span>`;
+      }
+      if (remainMaintain <= 0) {
+        maintainStr = `<span class="remain-maintain" style="color:#2eb872">維持✓+${fmtNum(Math.abs(remainMaintain))}</span>`;
+      } else {
+        maintainStr = `<span class="remain-maintain">維持まで▲${fmtNum(remainMaintain)}</span>`;
+      }
+      remainCell = `<div class="remain-cell">${achieveStr}${maintainStr}</div>`;
     }
 
     return `<tr>
@@ -624,6 +681,7 @@ function renderTable() {
           <span class="rate-text ${rateColor}">${d.achieve_rate != null ? d.achieve_rate + '%' : '-'}</span>
         </div>
       </td>
+      <td>${remainCell}</td>
       <td class="num">${d.work_days}日</td>
       <td class="num">${wageDisplay}</td>
       <td>${plannedCell}</td>
@@ -639,78 +697,140 @@ async function savePlanned(staffId) {
   const input = document.getElementById(`planned-${staffId}`);
   const val = input.value;
   const month = document.getElementById("month-select").value;
-  if (val === "" || isNaN(val)) {
-    alert("数値を入力してください");
-    return;
-  }
+  if (val === "" || isNaN(val)) { alert("数値を入力してください"); return; }
   try {
     const res = await fetch(`${BASE_URL}/staff/target`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`
-      },
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
       body: JSON.stringify({ staff_id: staffId, month: month, planned_work_days: parseInt(val) })
     });
     const data = await res.json();
-    if (data.error) {
-      alert("エラー: " + data.error);
-    } else {
-      await loadData();
-    }
-  } catch(e) {
-    alert("通信エラー: " + e.message);
-  }
+    if (data.error) alert("エラー: " + data.error);
+    else await loadData();
+  } catch(e) { alert("通信エラー: " + e.message); }
 }
 
 async function confirmMonth() {
   const month = document.getElementById("month-select").value;
-  if (!confirm(`${month} を確定します。\n以降、出勤予定数の代わりにjinjer実績の出勤日数が目標値計算に使われます。\n（確定後も管理画面から手動修正は可能です）\n\n実行しますか？`)) {
-    return;
-  }
+  if (!confirm(`${month} を確定します。\n以降、jinjer実績の出勤日数が目標値計算に使われます。\n\n実行しますか？`)) return;
   const btn = document.getElementById("confirm-btn");
-  btn.disabled = true;
-  btn.textContent = "確定処理中...";
+  btn.disabled = true; btn.textContent = "確定処理中...";
   try {
     const res = await fetch(`${BASE_URL}/staff/confirm_month`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`
-      },
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
       body: JSON.stringify({ month: month })
     });
     const data = await res.json();
-    if (data.error) {
-      alert("エラー: " + data.error);
-    } else {
-      alert(data.message || "確定しました");
-      await loadData();
-    }
-  } catch(e) {
-    alert("通信エラー: " + e.message);
-  } finally {
-    btn.disabled = false;
-    btn.textContent = "この月を確定する";
-  }
+    if (data.error) alert("エラー: " + data.error);
+    else { alert(data.message || "確定しました"); await loadData(); }
+  } catch(e) { alert("通信エラー: " + e.message); }
+  finally { btn.disabled = false; btn.textContent = "この月を確定する"; }
 }
 
 function renderSummary(data) {
+  const month = document.getElementById("month-select").value;
   const totalSales = data.reduce((s, d) => s + d.sales, 0);
   const totalApo = data.reduce((s, d) => s + d.apo_amount, 0);
   const totalCxl = data.reduce((s, d) => s + d.cxl_amount, 0);
   const totalFb = data.reduce((s, d) => s + d.fb_amount, 0);
-  const over100 = data.filter(d => d.achieve_rate >= 100).length;
   const active = data.filter(d => d.work_days > 0).length;
 
+  const withRate = data.filter(d => d.achieve_rate != null);
+  const achieve = withRate.filter(d => d.achieve_rate >= 100).length;
+  const maintain = withRate.filter(d => d.achieve_rate >= 80 && d.achieve_rate < 100).length;
+  const under = withRate.filter(d => d.achieve_rate < 80).length;
+
+  const { totalBizDays, elapsedBizDays, lastStr } = getBusinessDaysInfo(month);
+
   document.getElementById("summary-bar").innerHTML = `
+    <div class="progress-badge">
+      <div class="progress-badge-title">データ更新時点</div>
+      <div class="progress-badge-value">${lastStr}時点 / ${totalBizDays}営業日中${elapsedBizDays}日</div>
+    </div>
+    <div class="summary-divider"></div>
     <div class="summary-item"><span class="summary-label">総売上</span><span class="summary-value">${fmt(totalSales)}</span></div>
     <div class="summary-item"><span class="summary-label">アポ取得</span><span class="summary-value" style="color:#2eb872">${fmt(totalApo)}</span></div>
     <div class="summary-item"><span class="summary-label">CXL</span><span class="summary-value" style="color:#d9534f">▲${fmt(totalCxl)}</span></div>
     <div class="summary-item"><span class="summary-label">FB</span><span class="summary-value" style="color:#5a9cf8">${fmt(totalFb)}</span></div>
-    <div class="summary-item"><span class="summary-label">達成者数</span><span class="summary-value" style="color:#d97a3f">${over100}名</span></div>
     <div class="summary-item"><span class="summary-label">稼働人数</span><span class="summary-value">${active}名</span></div>
+    <div class="summary-divider"></div>
+    <div class="status-badge status-badge-achieve" onclick="openStatusDetail('achieve')">
+      <div class="status-badge-label">達成圏（100%以上）</div>
+      <div class="status-badge-count">${achieve}名</div>
+    </div>
+    <div class="status-badge status-badge-maintain" onclick="openStatusDetail('maintain')">
+      <div class="status-badge-label">維持圏（80〜99%）</div>
+      <div class="status-badge-count">${maintain}名</div>
+    </div>
+    <div class="status-badge status-badge-under" onclick="openStatusDetail('under')">
+      <div class="status-badge-label">未達圏（80%未満）</div>
+      <div class="status-badge-count">${under}名</div>
+    </div>
   `;
+}
+
+// ============================================================
+// 達成状況詳細モーダル
+// ============================================================
+function openStatusDetail(type) {
+  const data = getFilteredData().filter(d => d.achieve_rate != null);
+  let filtered, title;
+
+  if (type === "achieve") {
+    filtered = data.filter(d => d.achieve_rate >= 100);
+    title = "達成圏（100%以上）の詳細";
+  } else if (type === "maintain") {
+    filtered = data.filter(d => d.achieve_rate >= 80 && d.achieve_rate < 100);
+    title = "維持圏（80〜99%）の詳細";
+  } else {
+    filtered = data.filter(d => d.achieve_rate < 80);
+    title = "未達圏（80%未満）の詳細";
+  }
+
+  filtered.sort((a, b) => b.achieve_rate - a.achieve_rate);
+
+  document.getElementById("status-detail-title").textContent = title + `（${filtered.length}名）`;
+
+  // ランク別
+  const ranks = ["トップ","ミドル","ルーキープラス","ルーキー","管理者","社員"];
+  let rankHtml = `<div class="status-detail-section"><div class="status-detail-section-title">ランク別</div>`;
+  ranks.forEach(rank => {
+    const members = filtered.filter(d => d.rank === rank);
+    if (members.length === 0) return;
+    rankHtml += `<div style="margin-bottom:8px;font-size:12px;font-weight:700;color:#8a7a6d;margin-top:6px">${rank}（${members.length}名）</div>`;
+    members.forEach(d => {
+      const cls = d.achieve_rate >= 100 ? "rate-achieve" : d.achieve_rate >= 80 ? "rate-maintain" : "rate-under";
+      rankHtml += `<div class="status-detail-row">
+        <span class="status-detail-name">${d.name}</span>
+        <span class="status-detail-rate ${cls}">${d.achieve_rate}%（暫定）</span>
+      </div>`;
+    });
+  });
+  rankHtml += `</div>`;
+
+  // サイト別
+  const sites = [...new Set(filtered.map(d => d.site))].sort();
+  let siteHtml = `<div class="status-detail-section"><div class="status-detail-section-title">サイト別</div>`;
+  sites.forEach(site => {
+    const members = filtered.filter(d => d.site === site);
+    siteHtml += `<div style="margin-bottom:8px;font-size:12px;font-weight:700;color:#8a7a6d;margin-top:6px">${site}（${members.length}名）</div>`;
+    members.forEach(d => {
+      const cls = d.achieve_rate >= 100 ? "rate-achieve" : d.achieve_rate >= 80 ? "rate-maintain" : "rate-under";
+      siteHtml += `<div class="status-detail-row">
+        <span class="status-detail-name">${d.name}</span>
+        <span class="status-detail-rate ${cls}">${d.achieve_rate}%（暫定）</span>
+      </div>`;
+    });
+  });
+  siteHtml += `</div>`;
+
+  document.getElementById("status-detail-grid").innerHTML = rankHtml + siteHtml;
+  document.getElementById("status-detail-modal").classList.add("active");
+}
+
+function closeStatusDetail() {
+  document.getElementById("status-detail-modal").classList.remove("active");
 }
 
 function sortTable(key) {
@@ -735,6 +855,10 @@ function fmt(n) {
   if (n == null) return "-";
   return "¥" + n.toLocaleString();
 }
+function fmtNum(n) {
+  if (n == null) return "-";
+  return "¥" + Math.round(n).toLocaleString();
+}
 
 // ============================================================
 // FBキャンペーン管理
@@ -742,18 +866,13 @@ function fmt(n) {
 async function loadCampaigns() {
   const loading = document.getElementById("fb-loading");
   const table = document.getElementById("fb-table");
-  loading.style.display = "block";
-  table.style.display = "none";
+  loading.style.display = "block"; table.style.display = "none";
   try {
-    const res = await fetch(`${BASE_URL}/staff/fb_campaigns`, {
-      headers: { "Authorization": `Bearer ${token}` }
-    });
+    const res = await fetch(`${BASE_URL}/staff/fb_campaigns`, { headers: { "Authorization": `Bearer ${token}` } });
     const data = await res.json();
     allCampaigns = data.data || [];
     renderCampaignTable();
-  } catch(e) {
-    loading.textContent = "読み込みエラー: " + e.message;
-  }
+  } catch(e) { loading.textContent = "読み込みエラー: " + e.message; }
 }
 
 function renderCampaignTable() {
@@ -768,7 +887,6 @@ function renderCampaignTable() {
       const typesLabel = (c.target_types && c.target_types.length > 0) ? c.target_types.join("、") : "全種別";
       const resendLabel = c.exclude_resend ? "除外する" : "除外しない";
       const staffLabel = (c.target_staff_ids && c.target_staff_ids.length > 0) ? `${c.target_staff_ids.length}名指定` : "全員";
-
       return `<tr>
         <td>${c.name}</td>
         <td><span class="cat-pill ${catCls}">${c.category}</span></td>
@@ -802,42 +920,25 @@ function buildStaffCheckboxes() {
 
 function filterStaffCheckboxes() {
   const query = document.getElementById("staff-search").value.trim();
-  const rows = document.querySelectorAll("#staff-checkbox-box .staff-checkbox-row");
-  rows.forEach(row => {
-    const name = row.getAttribute("data-name");
-    row.style.display = name.includes(query) ? "flex" : "none";
+  document.querySelectorAll("#staff-checkbox-box .staff-checkbox-row").forEach(row => {
+    row.style.display = row.getAttribute("data-name").includes(query) ? "flex" : "none";
   });
 }
 
 function onCategoryChange() {
   const sel = document.getElementById("campaign-category-select");
-  const other = document.getElementById("campaign-category-other");
-  other.style.display = sel.value === "__other__" ? "block" : "none";
+  document.getElementById("campaign-category-other").style.display = sel.value === "__other__" ? "block" : "none";
 }
 
 function onCalcTypeChange() {
   const calcType = document.getElementById("campaign-calc-type").value;
-  const amountLabel = document.getElementById("campaign-amount-label");
-  const typeGroup = document.getElementById("campaign-type-group");
-  const resendGroup = document.getElementById("campaign-resend-group");
-  const staffNote = document.getElementById("campaign-staff-note");
-  const staffLabel = document.getElementById("campaign-staff-label");
-
-  if (calcType === "fixed") {
-    amountLabel.textContent = "付与金額（固定総額）";
-    typeGroup.style.display = "none";
-    resendGroup.style.display = "none";
-    staffLabel.textContent = "対象スタッフ（固定額の場合は1名以上選択してください）";
-    staffNote.textContent = "固定額の場合、選択したスタッフ全員に同額が付与されます";
-    staffNote.style.color = "#d97a3f";
-  } else {
-    amountLabel.textContent = "付与金額（1件あたり）";
-    typeGroup.style.display = "block";
-    resendGroup.style.display = "block";
-    staffLabel.textContent = "対象スタッフ（未選択＝全員対象）";
-    staffNote.textContent = "未選択の場合、全スタッフが対象になります";
-    staffNote.style.color = "#c9a07a";
-  }
+  const isFixed = calcType === "fixed";
+  document.getElementById("campaign-amount-label").textContent = isFixed ? "付与金額（固定総額）" : "付与金額（1件あたり）";
+  document.getElementById("campaign-type-group").style.display = isFixed ? "none" : "block";
+  document.getElementById("campaign-resend-group").style.display = isFixed ? "none" : "block";
+  document.getElementById("campaign-staff-label").textContent = isFixed ? "対象スタッフ（1名以上選択してください）" : "対象スタッフ（未選択＝全員対象）";
+  document.getElementById("campaign-staff-note").textContent = isFixed ? "固定額の場合、選択したスタッフ全員に同額が付与されます" : "未選択の場合、全スタッフが対象になります";
+  document.getElementById("campaign-staff-note").style.color = isFixed ? "#d97a3f" : "#c9a07a";
 }
 
 function openCampaignModal() {
@@ -870,13 +971,11 @@ function closeCampaignModal() {
 function editCampaign(id) {
   const c = allCampaigns.find(x => x.id === id);
   if (!c) return;
-
   document.getElementById("campaign-modal-title").textContent = "FBキャンペーン編集";
   document.getElementById("campaign-id").value = c.id;
   document.getElementById("campaign-name").value = c.name;
-
-  const standardCategories = ["勤怠ボーナス","勤怠ペナルティ","行動量ボーナス","イベントボーナス","トッププレイヤーボーナス"];
-  if (standardCategories.includes(c.category)) {
+  const standardCats = ["勤怠ボーナス","勤怠ペナルティ","行動量ボーナス","イベントボーナス","トッププレイヤーボーナス"];
+  if (standardCats.includes(c.category)) {
     document.getElementById("campaign-category-select").value = c.category;
     document.getElementById("campaign-category-other").style.display = "none";
     document.getElementById("campaign-category-other").value = "";
@@ -885,23 +984,19 @@ function editCampaign(id) {
     document.getElementById("campaign-category-other").style.display = "block";
     document.getElementById("campaign-category-other").value = c.category;
   }
-
   document.getElementById("campaign-calc-type").value = c.calc_type;
   document.getElementById("campaign-start").value = c.start_date;
   document.getElementById("campaign-end").value = c.end_date;
   document.getElementById("campaign-amount").value = c.amount;
-
   document.getElementById("type-new").checked = (c.target_types || []).includes("新規");
   document.getElementById("type-new-next").checked = (c.target_types || []).includes("新規【翌営業日】");
   document.getElementById("type-cancel-readjust").checked = (c.target_types || []).includes("キャンセルの再調整");
   document.getElementById("campaign-exclude-resend").checked = c.exclude_resend !== false;
-
   document.getElementById("staff-search").value = "";
   document.querySelectorAll("#staff-checkbox-box .staff-checkbox-row").forEach(r => r.style.display = "flex");
   document.querySelectorAll("#staff-checkbox-box input[type=checkbox]").forEach(chk => {
     chk.checked = (c.target_staff_ids || []).includes(chk.value);
   });
-
   document.getElementById("campaign-msg").textContent = "";
   onCalcTypeChange();
   document.getElementById("campaign-modal").classList.add("active");
@@ -910,105 +1005,49 @@ function editCampaign(id) {
 async function saveCampaign() {
   const msg = document.getElementById("campaign-msg");
   const btn = document.getElementById("campaign-submit");
-
   const id = document.getElementById("campaign-id").value;
   const name = document.getElementById("campaign-name").value.trim();
   let category = document.getElementById("campaign-category-select").value;
-  if (category === "__other__") {
-    category = document.getElementById("campaign-category-other").value.trim();
-  }
+  if (category === "__other__") category = document.getElementById("campaign-category-other").value.trim();
   const calcType = document.getElementById("campaign-calc-type").value;
   const startDate = document.getElementById("campaign-start").value;
   const endDate = document.getElementById("campaign-end").value;
   const amount = document.getElementById("campaign-amount").value;
-
   const targetTypes = [];
   if (document.getElementById("type-new").checked) targetTypes.push("新規");
   if (document.getElementById("type-new-next").checked) targetTypes.push("新規【翌営業日】");
   if (document.getElementById("type-cancel-readjust").checked) targetTypes.push("キャンセルの再調整");
-
   const excludeResend = document.getElementById("campaign-exclude-resend").checked;
-
   const targetStaffIds = [];
-  document.querySelectorAll("#staff-checkbox-box input[type=checkbox]:checked").forEach(c => {
-    targetStaffIds.push(c.value);
-  });
+  document.querySelectorAll("#staff-checkbox-box input[type=checkbox]:checked").forEach(c => targetStaffIds.push(c.value));
 
   if (!name || !category || !calcType || !startDate || !endDate || amount === "") {
-    msg.style.color = "#d9534f";
-    msg.textContent = "必須項目を入力してください";
-    return;
+    msg.style.color = "#d9534f"; msg.textContent = "必須項目を入力してください"; return;
   }
-  if (startDate > endDate) {
-    msg.style.color = "#d9534f";
-    msg.textContent = "開始日は終了日より前にしてください";
-    return;
-  }
-  if (calcType === "fixed" && targetStaffIds.length === 0) {
-    msg.style.color = "#d9534f";
-    msg.textContent = "固定額の場合、対象スタッフを1名以上選択してください";
-    return;
-  }
+  if (startDate > endDate) { msg.style.color = "#d9534f"; msg.textContent = "開始日は終了日より前にしてください"; return; }
+  if (calcType === "fixed" && targetStaffIds.length === 0) { msg.style.color = "#d9534f"; msg.textContent = "固定額の場合、対象スタッフを1名以上選択してください"; return; }
 
-  const payload = {
-    name, category,
-    calc_type: calcType,
-    start_date: startDate,
-    end_date: endDate,
-    amount: parseInt(amount),
-    target_types: targetTypes,
-    exclude_resend: excludeResend,
-    target_staff_ids: targetStaffIds
-  };
-
+  const payload = { name, category, calc_type: calcType, start_date: startDate, end_date: endDate, amount: parseInt(amount), target_types: targetTypes, exclude_resend: excludeResend, target_staff_ids: targetStaffIds };
   btn.disabled = true;
   try {
     const url = id ? `${BASE_URL}/staff/fb_campaigns/${id}` : `${BASE_URL}/staff/fb_campaigns`;
     const method = id ? "PUT" : "POST";
-    const res = await fetch(url, {
-      method,
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`
-      },
-      body: JSON.stringify(payload)
-    });
+    const res = await fetch(url, { method, headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` }, body: JSON.stringify(payload) });
     const data = await res.json();
-    if (data.error) {
-      msg.style.color = "#d9534f";
-      msg.textContent = data.error;
-    } else {
-      msg.style.color = "#2eb872";
-      msg.textContent = "保存しました";
-      await loadCampaigns();
-      await loadData();
-      setTimeout(closeCampaignModal, 800);
-    }
-  } catch(e) {
-    msg.style.color = "#d9534f";
-    msg.textContent = "通信エラー: " + e.message;
-  } finally {
-    btn.disabled = false;
-  }
+    if (data.error) { msg.style.color = "#d9534f"; msg.textContent = data.error; }
+    else { msg.style.color = "#2eb872"; msg.textContent = "保存しました"; await loadCampaigns(); await loadData(); setTimeout(closeCampaignModal, 800); }
+  } catch(e) { msg.style.color = "#d9534f"; msg.textContent = "通信エラー: " + e.message; }
+  finally { btn.disabled = false; }
 }
 
 async function deleteCampaign(id) {
   if (!confirm("このキャンペーンを削除しますか？")) return;
   try {
-    const res = await fetch(`${BASE_URL}/staff/fb_campaigns/${id}`, {
-      method: "DELETE",
-      headers: { "Authorization": `Bearer ${token}` }
-    });
+    const res = await fetch(`${BASE_URL}/staff/fb_campaigns/${id}`, { method: "DELETE", headers: { "Authorization": `Bearer ${token}` } });
     const data = await res.json();
-    if (data.error) {
-      alert("エラー: " + data.error);
-    } else {
-      await loadCampaigns();
-      await loadData();
-    }
-  } catch(e) {
-    alert("通信エラー: " + e.message);
-  }
+    if (data.error) alert("エラー: " + data.error);
+    else { await loadCampaigns(); await loadData(); }
+  } catch(e) { alert("通信エラー: " + e.message); }
 }
 
 // ============================================================
@@ -1018,24 +1057,17 @@ async function loadIncentiveSettings() {
   const msg = document.getElementById("inc-settings-msg");
   msg.textContent = "";
   try {
-    const res = await fetch(`${BASE_URL}/staff/incentive_settings`, {
-      headers: { "Authorization": `Bearer ${token}` }
-    });
+    const res = await fetch(`${BASE_URL}/staff/incentive_settings`, { headers: { "Authorization": `Bearer ${token}` } });
     const data = await res.json();
     if (data.data) {
       document.getElementById("inc-min-wage").value = data.data.min_wage;
       document.getElementById("inc-max-wage").value = data.data.max_wage;
     }
-  } catch(e) {
-    msg.style.color = "#d9534f";
-    msg.textContent = "読み込みエラー: " + e.message;
-  }
+  } catch(e) { msg.style.color = "#d9534f"; msg.textContent = "読み込みエラー: " + e.message; }
 
-  // 給与アップロードの対象月デフォルト：当月の2ヶ月前
   const monthInput = document.getElementById("inc-payroll-month");
   if (!monthInput.value) {
-    const currentMonth = document.getElementById("month-select").value;
-    const [y, m] = currentMonth.split("-").map(Number);
+    const [y, m] = document.getElementById("month-select").value.split("-").map(Number);
     let py = y, pm = m - 2;
     if (pm <= 0) { pm += 12; py -= 1; }
     monthInput.value = `${py}-${String(pm).padStart(2, "0")}`;
@@ -1046,94 +1078,44 @@ async function saveIncentiveSettings() {
   const msg = document.getElementById("inc-settings-msg");
   const minWage = document.getElementById("inc-min-wage").value;
   const maxWage = document.getElementById("inc-max-wage").value;
-
-  if (minWage === "" || maxWage === "") {
-    msg.style.color = "#d9534f";
-    msg.textContent = "上限・下限を入力してください";
-    return;
-  }
-  if (parseInt(minWage) > parseInt(maxWage)) {
-    msg.style.color = "#d9534f";
-    msg.textContent = "下限は上限以下にしてください";
-    return;
-  }
-
+  if (minWage === "" || maxWage === "") { msg.style.color = "#d9534f"; msg.textContent = "上限・下限を入力してください"; return; }
+  if (parseInt(minWage) > parseInt(maxWage)) { msg.style.color = "#d9534f"; msg.textContent = "下限は上限以下にしてください"; return; }
   try {
     const res = await fetch(`${BASE_URL}/staff/incentive_settings`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`
-      },
+      method: "POST", headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
       body: JSON.stringify({ min_wage: parseInt(minWage), max_wage: parseInt(maxWage) })
     });
     const data = await res.json();
-    if (data.error) {
-      msg.style.color = "#d9534f";
-      msg.textContent = data.error;
-    } else {
-      msg.style.color = "#2eb872";
-      msg.textContent = "保存しました";
-      await loadData();
-    }
-  } catch(e) {
-    msg.style.color = "#d9534f";
-    msg.textContent = "通信エラー: " + e.message;
-  }
+    if (data.error) { msg.style.color = "#d9534f"; msg.textContent = data.error; }
+    else { msg.style.color = "#2eb872"; msg.textContent = "保存しました"; await loadData(); }
+  } catch(e) { msg.style.color = "#d9534f"; msg.textContent = "通信エラー: " + e.message; }
 }
 
 async function uploadIncentivePayroll() {
   const msg = document.getElementById("inc-payroll-msg");
   const month = document.getElementById("inc-payroll-month").value;
   const file = document.getElementById("inc-payroll-file").files[0];
-
-  if (!month) {
-    msg.style.color = "#d9534f";
-    msg.textContent = "対象月を選択してください";
-    return;
-  }
-  if (!file) {
-    msg.style.color = "#d9534f";
-    msg.textContent = "CSVファイルを選択してください";
-    return;
-  }
-
+  if (!month) { msg.style.color = "#d9534f"; msg.textContent = "対象月を選択してください"; return; }
+  if (!file) { msg.style.color = "#d9534f"; msg.textContent = "CSVファイルを選択してください"; return; }
   try {
-    msg.style.color = "#c9a07a";
-    msg.textContent = "アップロード中...";
-
+    msg.style.color = "#c9a07a"; msg.textContent = "アップロード中...";
     const buf = await file.arrayBuffer();
     const csvText = new TextDecoder("shift-jis").decode(buf);
     const rows = parseCSV(csvText);
-
     const records = rows.map(r => ({
       staff_id: String(r["社員番号"] || "").trim(),
       base_salary: parseInt(String(r["基本給"] || "0").replace(/,/g, "")) || 0,
       overtime_allowance: parseInt(String(r["残業手当"] || "0").replace(/,/g, "")) || 0,
       commute_allowance: parseInt(String(r["非課税通勤手当"] || "0").replace(/,/g, "")) || 0,
     })).filter(r => r.staff_id);
-
     const res = await fetch(`${BASE_URL}/staff/upload/incentive_payroll_json`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`
-      },
+      method: "POST", headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
       body: JSON.stringify({ month, records })
     });
     const data = await res.json();
-    if (data.error) {
-      msg.style.color = "#d9534f";
-      msg.textContent = data.error;
-    } else {
-      msg.style.color = "#2eb872";
-      msg.textContent = `${data.count}件アップロードしました`;
-      await loadData();
-    }
-  } catch(e) {
-    msg.style.color = "#d9534f";
-    msg.textContent = "エラー: " + e.message;
-  }
+    if (data.error) { msg.style.color = "#d9534f"; msg.textContent = data.error; }
+    else { msg.style.color = "#2eb872"; msg.textContent = `${data.count}件アップロードしました`; await loadData(); }
+  } catch(e) { msg.style.color = "#d9534f"; msg.textContent = "エラー: " + e.message; }
 }
 
 // ============================================================
@@ -1142,8 +1124,7 @@ async function uploadIncentivePayroll() {
 async function uploadAll() {
   const btn = document.getElementById("update-btn");
   const msg = document.getElementById("status-msg");
-  btn.disabled = true;
-  msg.textContent = "アップロード中...";
+  btn.disabled = true; msg.textContent = "アップロード中...";
   try {
     const apoFile = document.getElementById("apo-file").files[0];
     const prodFile = document.getElementById("prod-file").files[0];
@@ -1153,11 +1134,8 @@ async function uploadAll() {
     if (attFile) { msg.textContent = "③ jinjer処理中..."; await uploadAtt(attFile); }
     msg.textContent = "✅ 更新完了";
     await loadData();
-  } catch(e) {
-    msg.textContent = "❌ エラー: " + e.message;
-  } finally {
-    btn.disabled = false;
-  }
+  } catch(e) { msg.textContent = "❌ エラー: " + e.message; }
+  finally { btn.disabled = false; }
 }
 
 async function uploadApo(file) {
@@ -1184,8 +1162,7 @@ async function uploadApo(file) {
     return true;
   });
   const res = await fetch(`${BASE_URL}/staff/upload/appointments_json`, {
-    method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ records })
+    method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ records })
   });
   const data = await res.json();
   if (data.error) throw new Error(data.error);
@@ -1200,8 +1177,7 @@ async function uploadProd(file) {
     call_count: parseInt(r["コール件数"] || "0") || 0,
   })).filter(r => r.staff_id);
   const res = await fetch(`${BASE_URL}/staff/upload/productivity_json`, {
-    method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ records })
+    method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ records })
   });
   const data = await res.json();
   if (data.error) throw new Error(data.error);
@@ -1212,40 +1188,28 @@ async function uploadAtt(file) {
   if (file.name.endsWith(".zip")) {
     const buf = await file.arrayBuffer();
     const zip = await JSZip.loadAsync(buf);
-    const allFiles = Object.values(zip.files);
-    const csvFile = allFiles.find(f => !f.dir && f.name.endsWith(".csv"));
+    const csvFile = Object.values(zip.files).find(f => !f.dir && f.name.endsWith(".csv"));
     if (!csvFile) throw new Error("ZIP内にCSVが見つかりません");
-    const csvBuf = await csvFile.async("arraybuffer");
-    csvText = new TextDecoder("shift-jis").decode(csvBuf);
+    csvText = new TextDecoder("shift-jis").decode(await csvFile.async("arraybuffer"));
   } else {
-    const buf = await file.arrayBuffer();
-    csvText = new TextDecoder("shift-jis").decode(buf);
+    csvText = new TextDecoder("shift-jis").decode(await file.arrayBuffer());
   }
   const rows = parseCSV(csvText);
   const rawRecords = rows.map(r => {
     const workTime = String(r["実労働時間"] || "00:00").trim();
     let workHours = 0;
-    try {
-      const [h, m] = workTime.split(":");
-      workHours = Math.round((parseInt(h) + parseInt(m) / 60) * 1000) / 1000;
-    } catch(e) {}
+    try { const [h, m] = workTime.split(":"); workHours = Math.round((parseInt(h) + parseInt(m) / 60) * 1000) / 1000; } catch(e) {}
     return {
       staff_id: String(r["*従業員ID"] || "").trim(),
       work_date: r["*年月日"] ? formatDate(r["*年月日"]) : null,
       work_hours: workHours,
     };
   }).filter(r => r.staff_id && r.work_date);
-
-  // staff_id + work_date が重複する場合は最後の値を優先
   const dedupMap = new Map();
-  for (const r of rawRecords) {
-    dedupMap.set(`${r.staff_id}_${r.work_date}`, r);
-  }
+  for (const r of rawRecords) dedupMap.set(`${r.staff_id}_${r.work_date}`, r);
   const records = Array.from(dedupMap.values());
-
   const res = await fetch(`${BASE_URL}/staff/upload/attendance_json`, {
-    method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ records })
+    method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ records })
   });
   const data = await res.json();
   if (data.error) throw new Error(data.error);

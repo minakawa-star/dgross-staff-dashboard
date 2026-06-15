@@ -1612,7 +1612,12 @@ function downloadTemplate() {
   msg.style.color = "#2eb872";
   msg.textContent = `${targets.length}名分のテンプレートをDLしました`;
 }
-
+function clearFile(prefix) {
+  const fileInput = document.getElementById(`${prefix}-file`);
+  const nameEl = document.getElementById(`${prefix}-name`);
+  fileInput.value = "";
+  nameEl.textContent = "未選択";
+}
 loadData();
 </script>
 </body>

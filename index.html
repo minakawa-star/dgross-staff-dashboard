@@ -76,8 +76,9 @@
 
   /* テーブル */
   .table-wrap { padding: 16px 24px; overflow-x: auto; }
-  table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 12px; overflow: hidden; }
-  thead { position: sticky; top: 60px; z-index: 10; }
+  .table-scroll { max-height: calc(100vh - 280px); overflow-y: auto; overflow-x: auto; border-radius: 12px; }
+  table { width: 100%; border-collapse: collapse; background: #fff; }
+  thead th { position: sticky; top: 0; z-index: 10; background: #fff7f1; }
   th { background: #fff7f1; color: #c9a07a; font-size: 12px; font-weight: 700; text-align: left; padding: 12px 14px; border-bottom: 2px solid #f0e4da; white-space: nowrap; cursor: pointer; user-select: none; }
   th:hover { color: #d97a3f; }
   td { padding: 12px 14px; border-bottom: 1px solid #f7eee5; white-space: nowrap; font-size: 14px; }

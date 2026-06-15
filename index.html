@@ -1271,7 +1271,6 @@ async function saveCampaign() {
   if (calcType !== "bulk" && amount === "") {
     msg.style.color = "#d9534f"; msg.textContent = "金額を入力してください"; return;
   }
-  }
   if (startDate > endDate) { msg.style.color = "#d9534f"; msg.textContent = "開始日は終了日より前にしてください"; return; }
   if (calcType === "fixed" && targetStaffIds.length === 0) { msg.style.color = "#d9534f"; msg.textContent = "固定額の場合、対象スタッフを1名以上選択してください"; return; }
 

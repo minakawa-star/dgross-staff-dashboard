@@ -1401,7 +1401,6 @@ async function uploadApo(file) {
 achievement_amount: parseInt(String(r["達成合計額"] || "0").replace(/,/g, "")) || 0,
     cancel_date: String(r["キャンセル受付日"] || "").trim() || null,
     fb_date: r["フィードバック受付日"] ? formatDate(r["フィードバック受付日"]) : null,
-    fb_amount: parseInt(String(r["達成金額"] || "0").replace(/,/g, "")) || 0,
     apo_type: String(r["種別"] || "").trim() || null,
     resend_status: String(r["再送当否"] || "").trim() || null,
   })).filter(r => r.staff_id);

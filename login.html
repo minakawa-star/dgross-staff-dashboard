@@ -94,6 +94,11 @@ async function login() {
     localStorage.setItem("staff_role", data.role);
     localStorage.setItem("staff_name", data.name);
 
+    if (!data.password_changed) {
+      window.location.href = "password_change.html";
+      return;
+    }
+
     if (data.role === "admin") {
       window.location.href = "index.html";
     } else {

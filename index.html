@@ -1453,6 +1453,9 @@ async function uploadAtt(file) {
       staff_id: String(r["*従業員ID"] || "").trim(),
       work_date: r["*年月日"] ? formatDate(r["*年月日"]) : null,
       work_hours: workHours,
+      absence_status: String(r["勤務状況"] || "").trim() || null,
+      late: String(r["遅刻"] || "").trim() || null,
+      early_leave: String(r["早退"] || "").trim() || null,
     };
   }).filter(r => r.staff_id && r.work_date);
   const dedupMap = new Map();

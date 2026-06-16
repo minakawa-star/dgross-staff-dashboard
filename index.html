@@ -1410,6 +1410,7 @@ async function uploadApo(file) {
     appointment_id: String(r["アポイントID"] || "").trim(),
     staff_id: String(r["社員番号"] || "").trim(),
     acquired_date: r["取得日"] ? formatDate(r["取得日"]) : null,
+    appointment_date: r["アポイント日"] ? formatDate(r["アポイント日"]) : null,
     amount: parseInt(String(r["案件金額"] || "0").replace(/,/g, "")) || 0,
 achievement_amount: parseInt(String(r["達成合計額"] || "0").replace(/,/g, "")) || 0,
 project_id: String(r["プロジェクトID"] || "").trim() || null,
@@ -1420,7 +1421,7 @@ project_id: String(r["プロジェクトID"] || "").trim() || null,
   })).filter(r => r.staff_id);
   const seen = new Set();
   const records = rawRecords.filter(r => {
-    const key = r.appointment_id || `${r.staff_id}_${r.acquired_date}_${r.amount}`;
+    const key = r.appointment_id || `${r.staff_id}_${r.appointment_date}_${r.amount}`;
     if (seen.has(key)) return false;
     seen.add(key);
     return true;

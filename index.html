@@ -1399,6 +1399,7 @@ async function uploadApo(file) {
     acquired_date: r["取得日"] ? formatDate(r["取得日"]) : null,
     amount: parseInt(String(r["案件金額"] || "0").replace(/,/g, "")) || 0,
 achievement_amount: parseInt(String(r["達成合計額"] || "0").replace(/,/g, "")) || 0,
+project_id: String(r["プロジェクトID"] || "").trim() || null,
     cancel_date: String(r["キャンセル受付日"] || "").trim() || null,
     fb_date: r["フィードバック受付日"] ? formatDate(r["フィードバック受付日"]) : null,
     apo_type: String(r["種別"] || "").trim() || null,

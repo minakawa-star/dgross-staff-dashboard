@@ -302,6 +302,7 @@
           <th>期間</th>
           <th>金額</th>
           <th>対象種別</th>
+          <th>対象案件</th>
           <th>再送除外</th>
           <th>対象スタッフ</th>
           <th>操作</th>
@@ -443,6 +444,11 @@
       <div class="checkbox-row"><input type="checkbox" id="type-new" value="新規"><label for="type-new">新規</label></div>
       <div class="checkbox-row"><input type="checkbox" id="type-new-next" value="新規【翌営業日】"><label for="type-new-next">新規【翌営業日】</label></div>
       <div class="checkbox-row"><input type="checkbox" id="type-cancel-readjust" value="キャンセルの再調整"><label for="type-cancel-readjust">キャンセルの再調整</label></div>
+    </div>
+    <div class="form-group" id="campaign-project-group">
+      <label class="form-label">対象案件ID（未入力＝全案件が対象／複数はカンマ区切り）</label>
+      <input class="form-input" type="text" id="campaign-project-ids" placeholder="例：P-R62456-01, P-R62457-02">
+      <div class="target-all-note">アポリストの「プロジェクトID」列と一致する値のみ集計対象になります</div>
     </div>
     <div class="form-group" id="campaign-resend-group">
       <div class="checkbox-row"><input type="checkbox" id="campaign-exclude-resend" checked><label for="campaign-exclude-resend">再送のアポは対象から除外する</label></div>
@@ -942,13 +948,14 @@ async function loadCampaigns() {
 function renderCampaignTable() {
   const tbody = document.getElementById("fb-table-body");
   if (allCampaigns.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;color:#c9a07a;padding:24px">キャンペーンが登録されていません</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;color:#c9a07a;padding:24px">キャンペーンが登録されていません</td></tr>`;
   } else {
     tbody.innerHTML = allCampaigns.map(c => {
       const catCls = c.category.includes("ペナルティ") ? "cat-penalty" : c.category.includes("ボーナス") ? "cat-bonus" : "cat-default";
       const calcLabel = c.calc_type === "fixed" ? "固定額" : "件数×単価";
       const amountLabel = c.calc_type === "fixed" ? fmt(c.amount) : fmt(c.amount) + " / 件";
       const typesLabel = (c.target_types && c.target_types.length > 0) ? c.target_types.join("、") : "全種別";
+      const projectLabel = (c.target_project_ids && c.target_project_ids.length > 0) ? c.target_project_ids.join("、") : "全案件";
       const resendLabel = c.exclude_resend ? "除外する" : "除外しない";
       const staffLabel = (c.target_staff_ids && c.target_staff_ids.length > 0) ? `${c.target_staff_ids.length}名指定` : "全員";
       return `<tr>
@@ -958,6 +965,7 @@ function renderCampaignTable() {
         <td>${c.start_date} 〜 ${c.end_date}</td>
         <td class="num">${amountLabel}</td>
         <td>${typesLabel}</td>
+        <td>${projectLabel}</td>
         <td>${resendLabel}</td>
         <td>${staffLabel}</td>
         <td>
@@ -1173,6 +1181,7 @@ function onCalcTypeChange() {
   document.getElementById("campaign-amount-label").textContent = isFixed ? "付与金額（固定総額）" : "付与金額（1件あたり）";
   document.getElementById("campaign-amount").closest(".form-group").style.display = isBulk ? "none" : "block";
   document.getElementById("campaign-type-group").style.display = (isFixed || isBulk) ? "none" : "block";
+  document.getElementById("campaign-project-group").style.display = (isFixed || isBulk) ? "none" : "block";
   document.getElementById("campaign-resend-group").style.display = (isFixed || isBulk) ? "none" : "block";
   document.getElementById("campaign-staff-group").style.display = isBulk ? "none" : "block";
 
@@ -1200,6 +1209,7 @@ function openCampaignModal() {
   document.getElementById("type-new").checked = false;
   document.getElementById("type-new-next").checked = false;
   document.getElementById("type-cancel-readjust").checked = false;
+  document.getElementById("campaign-project-ids").value = "";
   document.getElementById("campaign-exclude-resend").checked = true;
   document.getElementById("staff-search").value = "";
   document.querySelectorAll("#staff-checkbox-box input[type=checkbox]").forEach(c => c.checked = false);
@@ -1238,6 +1248,7 @@ function editCampaign(id) {
   document.getElementById("type-new").checked = (c.target_types || []).includes("新規");
   document.getElementById("type-new-next").checked = (c.target_types || []).includes("新規【翌営業日】");
   document.getElementById("type-cancel-readjust").checked = (c.target_types || []).includes("キャンセルの再調整");
+  document.getElementById("campaign-project-ids").value = (c.target_project_ids || []).join(", ");
   document.getElementById("campaign-exclude-resend").checked = c.exclude_resend !== false;
   document.getElementById("staff-search").value = "";
   document.querySelectorAll("#staff-checkbox-box .staff-checkbox-row").forEach(r => r.style.display = "flex");
@@ -1264,6 +1275,8 @@ async function saveCampaign() {
   if (document.getElementById("type-new").checked) targetTypes.push("新規");
   if (document.getElementById("type-new-next").checked) targetTypes.push("新規【翌営業日】");
   if (document.getElementById("type-cancel-readjust").checked) targetTypes.push("キャンセルの再調整");
+  const targetProjectIds = document.getElementById("campaign-project-ids").value
+    .split(",").map(s => s.trim()).filter(s => s);
   const excludeResend = document.getElementById("campaign-exclude-resend").checked;
   const targetStaffIds = [];
   document.querySelectorAll("#staff-checkbox-box input[type=checkbox]:checked").forEach(c => targetStaffIds.push(c.value));
@@ -1277,7 +1290,7 @@ async function saveCampaign() {
   if (startDate > endDate) { msg.style.color = "#d9534f"; msg.textContent = "開始日は終了日より前にしてください"; return; }
   if (calcType === "fixed" && targetStaffIds.length === 0) { msg.style.color = "#d9534f"; msg.textContent = "固定額の場合、対象スタッフを1名以上選択してください"; return; }
 
-  const payload = { name, category, calc_type: calcType, start_date: startDate, end_date: endDate, amount: parseInt(amount), target_types: targetTypes, exclude_resend: excludeResend, target_staff_ids: targetStaffIds };
+  const payload = { name, category, calc_type: calcType, start_date: startDate, end_date: endDate, amount: parseInt(amount), target_types: targetTypes, target_project_ids: targetProjectIds, exclude_resend: excludeResend, target_staff_ids: targetStaffIds };
   btn.disabled = true;
   try {
     const url = id ? `${BASE_URL}/staff/fb_campaigns/${id}` : `${BASE_URL}/staff/fb_campaigns`;

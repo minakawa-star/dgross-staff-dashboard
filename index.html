@@ -219,6 +219,7 @@
   <div class="header-right">
     <a class="ext-link-btn" href="https://app.dforce.work/cancel-reapproach" target="_blank">🔗 D-force</a>
     <button class="register-btn" onclick="openRegisterModal()">＋ スタッフ登録</button>
+    <button class="register-btn" onclick="openResetPasswordModal()">🔑 PWリセット</button>
     <button class="logout-btn" onclick="logout()">ログアウト</button>
   </div>
 </div>
@@ -372,24 +373,35 @@
       <input class="form-input" id="reg-staff-name" placeholder="例：山田太郎0101">
     </div>
     <div class="form-group">
-      <label class="form-label">ログインID</label>
-      <input class="form-input" id="reg-login-id" placeholder="例：yamada">
-    </div>
-    <div class="form-group">
-      <label class="form-label">パスワード</label>
-      <input class="form-input" type="password" id="reg-password" placeholder="8文字以上">
-    </div>
-    <div class="form-group">
       <label class="form-label">ロール</label>
       <select class="form-input" id="reg-role">
         <option value="staff">スタッフ</option>
         <option value="admin">管理者</option>
       </select>
     </div>
+    <div class="target-all-note">ログインIDは社員番号と同じになります。初期パスワードは共通（Dghojin2026）で、初回ログイン時に本人による変更が必須になります。</div>
     <div class="modal-msg" id="reg-msg"></div>
     <div class="modal-btns">
       <button class="btn-cancel" onclick="closeRegisterModal()">キャンセル</button>
       <button class="btn-submit" id="reg-submit" onclick="registerStaff()">登録</button>
+    </div>
+  </div>
+</div>
+
+<!-- パスワードリセットモーダル -->
+<div class="modal-overlay" id="reset-password-modal">
+  <div class="modal">
+    <div class="modal-title">パスワードリセット</div>
+    <div class="form-group">
+      <label class="form-label">対象スタッフ</label>
+      <input class="form-input staff-select-search" type="text" id="reset-pw-search" placeholder="名前で検索..." oninput="filterResetPwCheckboxes()">
+      <div class="staff-select-box" id="reset-pw-box"></div>
+    </div>
+    <div class="target-all-note">選択したスタッフのパスワードを初期パスワード（Dghojin2026）に戻します。次回ログイン時、本人によるパスワード変更が必須になります。</div>
+    <div class="modal-msg" id="reset-pw-msg"></div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeResetPasswordModal()">キャンセル</button>
+      <button class="btn-submit" id="reset-pw-submit" onclick="resetStaffPassword()">リセット実行</button>
     </div>
   </div>
 </div>
@@ -604,14 +616,68 @@ async function registerStaff() {
       body: JSON.stringify({
         staff_id: document.getElementById("reg-staff-id").value.trim(),
         staff_name: document.getElementById("reg-staff-name").value.trim(),
-        login_id: document.getElementById("reg-login-id").value.trim(),
-        password: document.getElementById("reg-password").value.trim(),
         role: document.getElementById("reg-role").value
       })
     });
     const data = await res.json();
     if (data.error) { msg.style.color = "#d9534f"; msg.textContent = data.error; }
     else { msg.style.color = "#2eb872"; msg.textContent = "登録完了しました"; setTimeout(closeRegisterModal, 1500); }
+  } catch(e) { msg.style.color = "#d9534f"; msg.textContent = "通信エラー"; }
+  finally { btn.disabled = false; }
+}
+
+// ============================================================
+// パスワードリセット
+// ============================================================
+let selectedResetStaffId = null;
+
+function openResetPasswordModal() {
+  selectedResetStaffId = null;
+  document.getElementById("reset-pw-search").value = "";
+  document.getElementById("reset-pw-msg").textContent = "";
+  buildResetPwCheckboxes();
+  document.getElementById("reset-password-modal").classList.add("active");
+}
+function closeResetPasswordModal() {
+  document.getElementById("reset-password-modal").classList.remove("active");
+}
+
+function buildResetPwCheckboxes() {
+  const box = document.getElementById("reset-pw-box");
+  const sorted = [...allData].sort((a, b) => a.name.localeCompare(b.name, 'ja'));
+  box.innerHTML = sorted.map(d => `
+    <div class="staff-checkbox-row" data-name="${d.name}">
+      <input type="radio" name="reset-pw-target" id="reset-pw-${d.staff_id}" value="${d.staff_id}" onchange="selectedResetStaffId='${d.staff_id}'">
+      <label for="reset-pw-${d.staff_id}">${d.name}（${d.site}）</label>
+    </div>
+  `).join("");
+}
+
+function filterResetPwCheckboxes() {
+  const query = document.getElementById("reset-pw-search").value.trim();
+  document.querySelectorAll("#reset-pw-box .staff-checkbox-row").forEach(row => {
+    row.style.display = row.getAttribute("data-name").includes(query) ? "flex" : "none";
+  });
+}
+
+async function resetStaffPassword() {
+  const msg = document.getElementById("reset-pw-msg");
+  const btn = document.getElementById("reset-pw-submit");
+  if (!selectedResetStaffId) {
+    msg.style.color = "#d9534f"; msg.textContent = "対象スタッフを選択してください";
+    return;
+  }
+  if (!confirm("このスタッフのパスワードを初期パスワードにリセットします。よろしいですか？")) return;
+  btn.disabled = true;
+  try {
+    const res = await fetch(`${BASE_URL}/staff/admin_reset_password`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+      body: JSON.stringify({ staff_id: selectedResetStaffId })
+    });
+    const data = await res.json();
+    if (data.error) { msg.style.color = "#d9534f"; msg.textContent = data.error; }
+    else { msg.style.color = "#2eb872"; msg.textContent = "リセット完了しました"; setTimeout(closeResetPasswordModal, 1500); }
   } catch(e) { msg.style.color = "#d9534f"; msg.textContent = "通信エラー"; }
   finally { btn.disabled = false; }
 }

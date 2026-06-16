@@ -106,6 +106,28 @@
   .inc-formula { font-size: 11px; color: #c9a07a; margin-top: 12px; line-height: 1.6; padding-top: 12px; border-top: 1px solid #f7eee5; }
 
   .loading { text-align: center; padding: 60px; color: #c9a07a; }
+
+  /* カレンダーカード */
+  .calendar-card { background: #fff; border: 1px solid #f5e6d8; border-radius: 14px; padding: 24px; margin-bottom: 16px; }
+  .calendar-title { font-size: 13px; font-weight: 700; color: #2a2622; margin-bottom: 4px; }
+  .calendar-sub { font-size: 11px; color: #c9a07a; margin-bottom: 16px; }
+  .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+  .calendar-dow { text-align: center; font-size: 11px; font-weight: 700; color: #c9a07a; padding-bottom: 4px; }
+  .calendar-cell { background: #fff7f1; border: 1px solid #f0e4da; border-radius: 8px; padding: 6px 4px; min-height: 64px; display: flex; flex-direction: column; gap: 2px; }
+  .calendar-cell.empty { background: transparent; border: none; }
+  .calendar-cell.today { border-color: #e8a87c; border-width: 2px; }
+  .calendar-day-num { font-size: 11px; color: #8a7a6d; font-weight: 600; }
+  .calendar-apo { font-size: 10px; color: #d97a3f; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .calendar-cxl { font-size: 10px; color: #d9534f; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .calendar-net { font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums; margin-top: auto; padding-top: 2px; border-top: 1px solid #f0e4da; }
+  .calendar-net.positive { color: #2eb872; }
+  .calendar-net.negative { color: #d9534f; }
+  .calendar-net.zero { color: #c9a07a; }
+  @media (max-width: 600px) {
+    .calendar-cell { min-height: 50px; padding: 4px 2px; }
+    .calendar-apo, .calendar-cxl { font-size: 9px; }
+    .calendar-net { font-size: 10px; }
+  }
 </style>
 </head>
 <body>
@@ -219,8 +241,24 @@
       </div>
     </div>
 
+    <!-- 日別カレンダー -->
+    <div class="calendar-card">
+      <div class="calendar-title">日別実績カレンダー</div>
+      <div class="calendar-sub">アポイント日基準。各日の上段＝アポ取得、下段＝キャンセル、最下部＝差額</div>
+      <div class="calendar-grid" id="calendar-grid">
+        <div class="calendar-dow">日</div>
+        <div class="calendar-dow">月</div>
+        <div class="calendar-dow">火</div>
+        <div class="calendar-dow">水</div>
+        <div class="calendar-dow">木</div>
+        <div class="calendar-dow">金</div>
+        <div class="calendar-dow">土</div>
+      </div>
+    </div>
+
   </div>
 </div>
+
 
 <script>
 const BASE_URL = "https://digross-server.onrender.com";
@@ -277,9 +315,65 @@ async function loadData() {
       return;
     }
     renderPage(staff);
+    loadCalendar();
   } catch(e) {
     document.getElementById("loading").textContent = "読み込みエラー: " + e.message;
   }
+}
+
+async function loadCalendar() {
+  try {
+    const res = await fetch(`${BASE_URL}/staff/daily_calendar?staff_id=${staffId}&month=${month}`);
+    const data = await res.json();
+    renderCalendar(data.data || []);
+  } catch(e) {
+    console.error("カレンダー読み込みエラー:", e.message);
+  }
+}
+
+function renderCalendar(dailyData) {
+  const dailyMap = {};
+  dailyData.forEach(d => { dailyMap[d.date] = d; });
+
+  const [y, m] = month.split("-").map(Number);
+  const firstDow = new Date(y, m - 1, 1).getDay();
+  const daysInMonth = new Date(y, m, 0).getDate();
+  const todayStr = new Date().toISOString().slice(0, 10);
+
+  const grid = document.getElementById("calendar-grid");
+  // 曜日見出し以外をクリア
+  grid.querySelectorAll(".calendar-cell").forEach(c => c.remove());
+
+  for (let i = 0; i < firstDow; i++) {
+    const empty = document.createElement("div");
+    empty.className = "calendar-cell empty";
+    grid.appendChild(empty);
+  }
+
+  for (let day = 1; day <= daysInMonth; day++) {
+    const dateStr = `${y}-${String(m).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
+    const info = dailyMap[dateStr];
+    const cell = document.createElement("div");
+    cell.className = "calendar-cell" + (dateStr === todayStr ? " today" : "");
+
+    let inner = `<div class="calendar-day-num">${day}</div>`;
+    if (info && (info.apo_amount > 0 || info.cxl_amount > 0)) {
+      if (info.apo_amount > 0) inner += `<div class="calendar-apo">+${fmtShort(info.apo_amount)}</div>`;
+      if (info.cxl_amount > 0) inner += `<div class="calendar-cxl">▲${fmtShort(info.cxl_amount)}</div>`;
+      const netCls = info.net_amount > 0 ? "positive" : info.net_amount < 0 ? "negative" : "zero";
+      inner += `<div class="calendar-net ${netCls}">${fmtShort(info.net_amount)}</div>`;
+    }
+    cell.innerHTML = inner;
+    grid.appendChild(cell);
+  }
+}
+
+function fmtShort(n) {
+  if (n == null) return "-";
+  const sign = n < 0 ? "▲" : "";
+  const abs = Math.abs(n);
+  if (abs >= 10000) return sign + (abs/10000).toFixed(1).replace(/\.0$/,"") + "万";
+  return sign + abs.toLocaleString();
 }
 
 function fbCatClass(category) {

@@ -1476,12 +1476,53 @@ function formatDate(val) {
 }
 
 function parseCSV(text) {
-  const lines = text.split("\n").filter(l => l.trim());
-  const headers = lines[0].split(",").map(h => h.trim().replace(/^"|"$/g, ""));
-  return lines.slice(1).map(line => {
-    const vals = line.split(",").map(v => v.trim().replace(/^"|"$/g, ""));
+  function splitCSVLine(line) {
+    const result = [];
+    let current = "";
+    let inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (ch === '"') {
+        if (inQuotes && line[i+1] === '"') { current += '"'; i++; }
+        else { inQuotes = !inQuotes; }
+      } else if (ch === ',' && !inQuotes) {
+        result.push(current.trim());
+        current = "";
+      } else {
+        current += ch;
+      }
+    }
+    result.push(current.trim());
+    return result;
+  }
+
+  // 改行コード統一・空行除去
+  const normalized = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+  
+  // 引用符内の改行を考慮してレコード分割
+  const records = [];
+  let current = "";
+  let inQuotes = false;
+  for (let i = 0; i < normalized.length; i++) {
+    const ch = normalized[i];
+    if (ch === '"') {
+      if (inQuotes && normalized[i+1] === '"') { current += '""'; i++; }
+      else { inQuotes = !inQuotes; current += ch; }
+    } else if (ch === '\n' && !inQuotes) {
+      if (current.trim()) records.push(current);
+      current = "";
+    } else {
+      current += ch;
+    }
+  }
+  if (current.trim()) records.push(current);
+
+  if (records.length < 2) return [];
+  const headers = splitCSVLine(records[0]);
+  return records.slice(1).map(line => {
+    const vals = splitCSVLine(line);
     const obj = {};
-    headers.forEach((h, i) => obj[h] = vals[i] || "");
+    headers.forEach((h, i) => obj[h] = vals[i] !== undefined ? vals[i] : "");
     return obj;
   });
 }

@@ -46,6 +46,19 @@
   .confirm-btn:hover { background: #fdeee3; }
   .confirm-btn:disabled { background: #f0e4da; color: #c9a07a; border-color: #f0e4da; cursor: not-allowed; }
 
+  /* 確定操作セクション */
+  .confirm-section { background: #fff; border-bottom: 1px solid #f0e4da; padding: 16px 24px; display: flex; align-items: stretch; gap: 16px; flex-wrap: wrap; }
+  .confirm-step { display: flex; flex-direction: column; gap: 6px; min-width: 220px; }
+  .confirm-step-label { font-size: 13px; font-weight: 700; color: #2a2622; }
+  .confirm-step-sub { font-size: 11px; color: #c9a07a; }
+  .confirm-step-btns { display: flex; gap: 8px; margin-top: 4px; }
+  .confirm-step-divider { display: flex; align-items: center; justify-content: center; color: #e8a87c; font-size: 18px; font-weight: 700; padding: 0 4px; }
+  .confirm-btn-primary { background: #e8a87c; border: none; color: #fff; }
+  .confirm-btn-primary:hover { background: #d97a3f; }
+  .confirm-btn-undo { background: transparent; border: 1px solid #e89a9a; color: #d9534f; padding: 6px 14px; border-radius: 6px; font-size: 13px; cursor: pointer; }
+  .confirm-btn-undo:hover { background: #fdecec; }
+  .confirm-btn-undo:disabled { border-color: #f0e4da; color: #c9a07a; cursor: not-allowed; }
+
   /* サマリーバー */
   .summary-bar { background: #fff; padding: 16px 24px; display: flex; gap: 20px; border-bottom: 1px solid #f0e4da; flex-wrap: wrap; align-items: center; }
   .summary-item { display: flex; flex-direction: column; gap: 2px; }
@@ -219,7 +232,6 @@
       <option value="管理者">管理者</option>
       <option value="社員">社員</option>
     </select>
-    <button class="confirm-btn" id="confirm-btn" onclick="confirmMonth()">この月を確定する</button>
   </div>
   <div class="header-right">
     <a class="ext-link-btn" href="https://app.dforce.work/cancel-reapproach" target="_blank">🔗 D-force</a>
@@ -254,6 +266,36 @@
 </div>
 
 <div class="summary-bar" id="summary-bar"></div>
+
+<!-- 確定操作セクション -->
+<div class="confirm-section" id="confirm-section">
+  <div class="confirm-step">
+    <div class="confirm-step-label">①目標値確定</div>
+    <div class="confirm-step-sub">出勤実績を確定し、達成目標・維持目標を固定します</div>
+    <div class="confirm-step-btns">
+      <button class="confirm-btn confirm-btn-primary" id="target-confirm-btn" onclick="confirmMonth()">①目標値確定</button>
+      <button class="confirm-btn confirm-btn-undo" id="target-unconfirm-btn" onclick="unconfirmMonth()">解除</button>
+    </div>
+  </div>
+  <div class="confirm-step-divider">→</div>
+  <div class="confirm-step">
+    <div class="confirm-step-label">②時給確定</div>
+    <div class="confirm-step-sub">①完了後に実行可能。確定時給を履歴として保存します</div>
+    <div class="confirm-step-btns">
+      <button class="confirm-btn confirm-btn-primary" id="wage-confirm-btn" onclick="confirmWage()">②時給確定</button>
+      <button class="confirm-btn confirm-btn-undo" id="wage-unconfirm-btn" onclick="unconfirmWage()">解除</button>
+    </div>
+  </div>
+  <div class="confirm-step-divider"></div>
+  <div class="confirm-step">
+    <div class="confirm-step-label">Excel出力</div>
+    <div class="confirm-step-sub">確定済みデータをExcelで出力します</div>
+    <div class="confirm-step-btns">
+      <button class="confirm-btn" onclick="exportIncentivePayout()">📥 インセンティブ支給額</button>
+      <button class="confirm-btn" onclick="exportConfirmedWage()">📥 確定時給</button>
+    </div>
+  </div>
+</div>
 
 <!-- タブ -->
 <div class="tab-bar">
@@ -811,9 +853,24 @@ async function loadData() {
     allData = data.data || [];
     renderTable();
     buildStaffCheckboxes();
+    await updateConfirmButtonStates();
   } catch(e) {
     document.getElementById("loading").textContent = "読み込みエラー: " + e.message;
   }
+}
+
+async function updateConfirmButtonStates() {
+  const month = document.getElementById("month-select").value;
+  try {
+    const res = await fetch(`${BASE_URL}/staff/month_status?month=${month}`, { headers: { "Authorization": `Bearer ${token}` } });
+    const data = await res.json();
+    if (data.error) return;
+
+    document.getElementById("target-confirm-btn").disabled = data.target_confirmed;
+    document.getElementById("target-unconfirm-btn").disabled = !data.target_confirmed || data.wage_confirmed;
+    document.getElementById("wage-confirm-btn").disabled = !data.target_confirmed || data.wage_confirmed;
+    document.getElementById("wage-unconfirm-btn").disabled = !data.wage_confirmed;
+  } catch(e) { console.error("確定状況の取得エラー:", e.message); }
 }
 
 function getFilteredData() {
@@ -985,8 +1042,8 @@ async function savePlanned(staffId) {
 
 async function confirmMonth() {
   const month = document.getElementById("month-select").value;
-  if (!confirm(`${month} を確定します。\n以降、jinjer実績の出勤日数が目標値計算に使われます。\n\n実行しますか？`)) return;
-  const btn = document.getElementById("confirm-btn");
+  if (!confirm(`${month} の目標値を確定します。\n以降、jinjer実績の出勤日数が目標値計算に使われます。\n\n実行しますか？`)) return;
+  const btn = document.getElementById("target-confirm-btn");
   btn.disabled = true; btn.textContent = "確定処理中...";
   try {
     const res = await fetch(`${BASE_URL}/staff/confirm_month`, {
@@ -998,7 +1055,71 @@ async function confirmMonth() {
     if (data.error) alert("エラー: " + data.error);
     else { alert(data.message || "確定しました"); await loadData(); }
   } catch(e) { alert("通信エラー: " + e.message); }
-  finally { btn.disabled = false; btn.textContent = "この月を確定する"; }
+  finally { btn.disabled = false; btn.textContent = "①目標値確定"; }
+}
+
+async function unconfirmMonth() {
+  const month = document.getElementById("month-select").value;
+  if (!confirm(`${month} の目標値確定を解除します。\n時給確定が済んでいる場合は先に時給確定を解除してください。\n\n実行しますか？`)) return;
+  const btn = document.getElementById("target-unconfirm-btn");
+  btn.disabled = true;
+  try {
+    const res = await fetch(`${BASE_URL}/staff/unconfirm_month`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+      body: JSON.stringify({ month: month })
+    });
+    const data = await res.json();
+    if (data.error) alert("エラー: " + data.error);
+    else { alert(data.message || "解除しました"); await loadData(); }
+  } catch(e) { alert("通信エラー: " + e.message); }
+  finally { btn.disabled = false; }
+}
+
+async function confirmWage() {
+  const month = document.getElementById("month-select").value;
+  if (!confirm(`${month} の確定時給を確定します。\n①目標値確定が済んでいない場合は実行できません。\n\n実行しますか？`)) return;
+  const btn = document.getElementById("wage-confirm-btn");
+  btn.disabled = true; btn.textContent = "確定処理中...";
+  try {
+    const res = await fetch(`${BASE_URL}/staff/confirm_wage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+      body: JSON.stringify({ month: month })
+    });
+    const data = await res.json();
+    if (data.error) alert("エラー: " + data.error);
+    else { alert(data.message || "確定しました"); await loadData(); }
+  } catch(e) { alert("通信エラー: " + e.message); }
+  finally { btn.disabled = false; btn.textContent = "②時給確定"; }
+}
+
+async function unconfirmWage() {
+  const month = document.getElementById("month-select").value;
+  if (!confirm(`${month} の時給確定を解除します。よろしいですか？`)) return;
+  const btn = document.getElementById("wage-unconfirm-btn");
+  btn.disabled = true;
+  try {
+    const res = await fetch(`${BASE_URL}/staff/unconfirm_wage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+      body: JSON.stringify({ month: month })
+    });
+    const data = await res.json();
+    if (data.error) alert("エラー: " + data.error);
+    else { alert(data.message || "解除しました"); await loadData(); }
+  } catch(e) { alert("通信エラー: " + e.message); }
+  finally { btn.disabled = false; }
+}
+
+function exportIncentivePayout() {
+  const month = document.getElementById("month-select").value;
+  window.open(`${BASE_URL}/staff/export/incentive_payout?month=${month}&token=${token}`, "_blank");
+}
+
+function exportConfirmedWage() {
+  const month = document.getElementById("month-select").value;
+  window.open(`${BASE_URL}/staff/export/confirmed_wage?month=${month}&token=${token}`, "_blank");
 }
 
 function renderSummary(data) {

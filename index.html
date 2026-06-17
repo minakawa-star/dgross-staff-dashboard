@@ -368,19 +368,32 @@
 
     <div class="inc-section">
       <div class="inc-section-title">インセンティブ支給率テーブル</div>
-      <div class="inc-section-sub">時給帯・週（出勤頻度）別の支給率です。会議での正式決定後に値を更新してください（現在は暫定値）</div>
+      <div class="inc-section-sub">会議での正式決定後に値を更新してください（現在は暫定値）</div>
+
+      <div class="inc-form-row" style="margin-bottom:16px">
+        <div class="inc-form-group">
+          <label>判定方式</label>
+          <select class="form-input" id="payout-mode-select" onchange="onPayoutModeChange()">
+            <option value="week">週勤務（出勤頻度）で判定</option>
+            <option value="achieve_rate">達成率（インセンティブ目標に対する達成率）で判定</option>
+          </select>
+        </div>
+      </div>
+
       <table style="width:100%;border-collapse:collapse" id="payout-rate-table">
         <thead>
-          <tr style="border-bottom:2px solid #f0e4da">
-            <th style="text-align:left;padding:8px;font-size:12px;color:#c9a07a">時給帯</th>
-            <th style="text-align:left;padding:8px;font-size:12px;color:#c9a07a">週5</th>
-            <th style="text-align:left;padding:8px;font-size:12px;color:#c9a07a">週4</th>
-            <th style="text-align:left;padding:8px;font-size:12px;color:#c9a07a">週3</th>
-            <th style="text-align:left;padding:8px;font-size:12px;color:#c9a07a">週2</th>
+          <tr style="border-bottom:2px solid #f0e4da" id="payout-rate-table-head">
+            <th style="text-align:left;padding:8px;font-size:12px;color:#c9a07a">時給（円）</th>
+            <th style="text-align:left;padding:8px;font-size:12px;color:#c9a07a" id="payout-segment-head">区分</th>
+            <th style="text-align:left;padding:8px;font-size:12px;color:#c9a07a">支給率（%）</th>
+            <th style="padding:8px"></th>
           </tr>
         </thead>
         <tbody id="payout-rate-table-body"></tbody>
       </table>
+      <div class="inc-form-row" style="margin-top:12px">
+        <button class="action-btn" onclick="addPayoutRateRow()">＋ 行を追加</button>
+      </div>
       <div class="inc-form-row" style="margin-top:16px">
         <button class="inc-save-btn" onclick="savePayoutRates()">保存</button>
       </div>
@@ -1715,60 +1728,120 @@ async function loadIncentiveSettings() {
 }
 
 let currentPayoutRates = [];
+let currentPayoutMode = "week";
+let payoutRowSeq = 0;
 
 async function loadPayoutRates() {
   try {
     const res = await fetch(`${BASE_URL}/staff/incentive_payout_rates`, { headers: { "Authorization": `Bearer ${token}` } });
     const data = await res.json();
-    currentPayoutRates = data.data || [];
+    currentPayoutRates = (data.data || []).map(r => { payoutRowSeq++; return { ...r, _rowId: "row" + payoutRowSeq }; });
+    currentPayoutMode = data.mode || "week";
+    document.getElementById("payout-mode-select").value = currentPayoutMode;
     renderPayoutRateTable();
   } catch(e) {
     document.getElementById("payout-rate-msg").textContent = "読み込みエラー: " + e.message;
   }
 }
 
+function onPayoutModeChange() {
+  currentPayoutMode = document.getElementById("payout-mode-select").value;
+  currentPayoutRates = []; // モード切替時は表をクリアして作り直す
+  renderPayoutRateTable();
+}
+
 function renderPayoutRateTable() {
-  const bands = [
-    { key: "2500", label: "2,500円" },
-    { key: "2100-2400", label: "2,100〜2,400円" }
-  ];
-  const weeks = ["週5", "週4", "週3", "週2"];
+  const isWeek = currentPayoutMode === "week";
+  document.getElementById("payout-segment-head").textContent = isWeek ? "週勤務" : "達成率の範囲（%）";
 
-  const getRate = (band, week) => {
-    const found = currentPayoutRates.find(r => r.wage_band === band && r.week_label === week);
-    return found ? Math.round(found.rate * 1000) / 10 : "";
-  };
+  const tbody = document.getElementById("payout-rate-table-body");
+  if (currentPayoutRates.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="4" style="padding:14px;text-align:center;color:#c9a07a">「＋ 行を追加」で項目を作成してください</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = currentPayoutRates.map(row => renderPayoutRateRow(row)).join("");
+}
 
-  document.getElementById("payout-rate-table-body").innerHTML = bands.map(b => {
-    const cells = weeks.map(w => {
-      const val = getRate(b.key, w);
-      return `<td style="padding:6px"><input type="number" step="0.1" class="form-input" style="width:80px" id="payout-${b.key}-${w}" value="${val}" placeholder="-">%</td>`;
-    }).join("");
-    return `<tr style="border-bottom:1px solid #f7eee5"><td style="padding:8px;font-weight:600">${b.label}</td>${cells}</tr>`;
-  }).join("");
+function renderPayoutRateRow(row) {
+  const isWeek = currentPayoutMode === "week";
+  const rowId = row._rowId;
+  const rateVal = row.rate != null ? Math.round(row.rate * 1000) / 10 : "";
+
+  let segmentCell;
+  if (isWeek) {
+    const weeks = ["週5", "週4", "週3", "週2"];
+    segmentCell = `<select class="form-input" style="width:90px" id="payout-segment-${rowId}">
+      ${weeks.map(w => `<option value="${w}" ${row.segment_label === w ? "selected" : ""}>${w}</option>`).join("")}
+    </select>`;
+  } else {
+    segmentCell = `<div style="display:flex;align-items:center;gap:4px">
+      <input type="number" step="0.1" class="form-input" style="width:70px" id="payout-min-${rowId}" value="${row.segment_min ?? ""}" placeholder="開始">
+      <span>〜</span>
+      <input type="number" step="0.1" class="form-input" style="width:70px" id="payout-max-${rowId}" value="${row.segment_max ?? ""}" placeholder="終了">%
+    </div>`;
+  }
+
+  return `<tr style="border-bottom:1px solid #f7eee5" id="payout-row-${rowId}">
+    <td style="padding:6px"><input type="number" class="form-input" style="width:90px" id="payout-wage-${rowId}" value="${row.wage_band ?? ""}" placeholder="例：2200"></td>
+    <td style="padding:6px">${segmentCell}</td>
+    <td style="padding:6px"><input type="number" step="0.1" class="form-input" style="width:80px" id="payout-rate-${rowId}" value="${rateVal}" placeholder="-">%</td>
+    <td style="padding:6px"><button class="action-btn delete" onclick="removePayoutRateRow('${rowId}')">削除</button></td>
+  </tr>`;
+}
+
+function addPayoutRateRow() {
+  payoutRowSeq++;
+  const rowId = "new" + payoutRowSeq;
+  const isWeek = currentPayoutMode === "week";
+  currentPayoutRates.push({
+    _rowId: rowId,
+    wage_band: "",
+    segment_label: isWeek ? "週5" : "",
+    segment_min: null,
+    segment_max: null,
+    rate: ""
+  });
+  renderPayoutRateTable();
+}
+
+function removePayoutRateRow(rowId) {
+  currentPayoutRates = currentPayoutRates.filter(r => r._rowId !== rowId);
+  renderPayoutRateTable();
 }
 
 async function savePayoutRates() {
   const msg = document.getElementById("payout-rate-msg");
-  const bands = ["2500", "2100-2400"];
-  const weeks = ["週5", "週4", "週3", "週2"];
+  const isWeek = currentPayoutMode === "week";
   const rates = [];
 
-  bands.forEach(band => {
-    weeks.forEach(week => {
-      const input = document.getElementById(`payout-${band}-${week}`);
-      const val = input.value.trim();
-      if (val !== "") {
-        rates.push({ wage_band: band, week_label: week, rate: parseFloat(val) / 100 });
-      }
-    });
-  });
+  for (const row of currentPayoutRates) {
+    const rowId = row._rowId;
+    const wage = document.getElementById(`payout-wage-${rowId}`).value.trim();
+    const rate = document.getElementById(`payout-rate-${rowId}`).value.trim();
+    if (wage === "" || rate === "") continue;
+
+    if (isWeek) {
+      const segment = document.getElementById(`payout-segment-${rowId}`).value;
+      rates.push({ wage_band: wage, segment_label: segment, segment_min: null, segment_max: null, rate: parseFloat(rate) / 100 });
+    } else {
+      const min = document.getElementById(`payout-min-${rowId}`).value.trim();
+      const max = document.getElementById(`payout-max-${rowId}`).value.trim();
+      if (min === "" || max === "") continue;
+      rates.push({
+        wage_band: wage,
+        segment_label: `${min}-${max}%`,
+        segment_min: parseFloat(min),
+        segment_max: parseFloat(max),
+        rate: parseFloat(rate) / 100
+      });
+    }
+  }
 
   try {
     const res = await fetch(`${BASE_URL}/staff/incentive_payout_rates`, {
       method: "POST",
       headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
-      body: JSON.stringify({ rates })
+      body: JSON.stringify({ rates, mode: currentPayoutMode })
     });
     const data = await res.json();
     if (data.error) { msg.style.color = "#d9534f"; msg.textContent = data.error; }

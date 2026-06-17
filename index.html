@@ -285,6 +285,8 @@
           <th onclick="sortTable('hourly_wage')">時給</th>
           <th>出勤予定数</th>
           <th onclick="sortTable('incentive_target')">インセンティブ目標</th>
+          <th onclick="sortTable('incentive_payout')">支給金額</th>
+          <th onclick="sortTable('confirmed_wage')">確定時給</th>
         </tr>
       </thead>
       <tbody id="table-body"></tbody>
@@ -361,6 +363,31 @@
         ※ このデータは「対象月」の2ヶ月後のインセンティブ計算に使用されます<br>
         ※ CSVの列構成：社員番号、氏名、在籍区分、基本給、残業手当、非課税通勤手当<br>
         ※ インセンティブ目標 = (基本給 + 残業手当 + 非課税通勤手当) × 売上比重
+      </div>
+    </div>
+
+    <div class="inc-section">
+      <div class="inc-section-title">インセンティブ支給率テーブル</div>
+      <div class="inc-section-sub">時給帯・週（出勤頻度）別の支給率です。会議での正式決定後に値を更新してください（現在は暫定値）</div>
+      <table style="width:100%;border-collapse:collapse" id="payout-rate-table">
+        <thead>
+          <tr style="border-bottom:2px solid #f0e4da">
+            <th style="text-align:left;padding:8px;font-size:12px;color:#c9a07a">時給帯</th>
+            <th style="text-align:left;padding:8px;font-size:12px;color:#c9a07a">週5</th>
+            <th style="text-align:left;padding:8px;font-size:12px;color:#c9a07a">週4</th>
+            <th style="text-align:left;padding:8px;font-size:12px;color:#c9a07a">週3</th>
+            <th style="text-align:left;padding:8px;font-size:12px;color:#c9a07a">週2</th>
+          </tr>
+        </thead>
+        <tbody id="payout-rate-table-body"></tbody>
+      </table>
+      <div class="inc-form-row" style="margin-top:16px">
+        <button class="inc-save-btn" onclick="savePayoutRates()">保存</button>
+      </div>
+      <div class="inc-msg" id="payout-rate-msg"></div>
+      <div class="inc-note">
+        支給金額 = (インセンティブ目標 − 2ヶ月前の売上実績) × 上記の支給率（超過分がない場合は¥0）<br>
+        空欄は「対象外」を意味します（例：2,100〜2,400円の週2は対象外）
       </div>
     </div>
   </div>
@@ -857,6 +884,25 @@ function renderTable() {
       incentiveCell = `<span class="incentive-na">${d.incentive_status}</span>`;
     }
 
+    // 支給金額
+    let payoutCell;
+    if (d.incentive_payout_status === "ok") {
+      payoutCell = `<span class="num" style="color:#2eb872;font-weight:700">${fmt(d.incentive_payout)}</span>`;
+    } else if (d.incentive_payout_status === "対象外（超過なし）") {
+      payoutCell = `<span class="incentive-na">¥0</span>`;
+    } else {
+      payoutCell = `<span class="incentive-na">${d.incentive_payout_status || "-"}</span>`;
+    }
+
+    // 確定時給
+    let confirmedWageCell;
+    if (d.confirmed_wage != null) {
+      const changeColor = d.confirmed_wage_change.includes("+") ? "#2eb872" : d.confirmed_wage_change.includes("-") ? "#d9534f" : "#c9a07a";
+      confirmedWageCell = `<div style="display:flex;flex-direction:column"><span class="num">¥${d.confirmed_wage.toLocaleString()}</span><span style="font-size:11px;color:${changeColor}">${d.confirmed_wage_change}</span></div>`;
+    } else {
+      confirmedWageCell = `<span class="incentive-na">-</span>`;
+    }
+
     // 目標までの残り
     let remainCell = '<span class="incentive-na">-</span>';
     if (d.target_achieve > 0 || d.target_maintain > 0) {
@@ -898,6 +944,8 @@ function renderTable() {
       <td class="num">${wageDisplay}</td>
       <td>${plannedCell}</td>
       <td>${incentiveCell}</td>
+      <td>${payoutCell}</td>
+      <td>${confirmedWageCell}</td>
     </tr>`;
   }).join("");
 
@@ -1662,6 +1710,74 @@ async function loadIncentiveSettings() {
     if (pm <= 0) { pm += 12; py -= 1; }
     monthInput.value = `${py}-${String(pm).padStart(2, "0")}`;
   }
+
+  loadPayoutRates();
+}
+
+let currentPayoutRates = [];
+
+async function loadPayoutRates() {
+  try {
+    const res = await fetch(`${BASE_URL}/staff/incentive_payout_rates`, { headers: { "Authorization": `Bearer ${token}` } });
+    const data = await res.json();
+    currentPayoutRates = data.data || [];
+    renderPayoutRateTable();
+  } catch(e) {
+    document.getElementById("payout-rate-msg").textContent = "読み込みエラー: " + e.message;
+  }
+}
+
+function renderPayoutRateTable() {
+  const bands = [
+    { key: "2500", label: "2,500円" },
+    { key: "2100-2400", label: "2,100〜2,400円" }
+  ];
+  const weeks = ["週5", "週4", "週3", "週2"];
+
+  const getRate = (band, week) => {
+    const found = currentPayoutRates.find(r => r.wage_band === band && r.week_label === week);
+    return found ? Math.round(found.rate * 1000) / 10 : "";
+  };
+
+  document.getElementById("payout-rate-table-body").innerHTML = bands.map(b => {
+    const cells = weeks.map(w => {
+      const val = getRate(b.key, w);
+      return `<td style="padding:6px"><input type="number" step="0.1" class="form-input" style="width:80px" id="payout-${b.key}-${w}" value="${val}" placeholder="-">%</td>`;
+    }).join("");
+    return `<tr style="border-bottom:1px solid #f7eee5"><td style="padding:8px;font-weight:600">${b.label}</td>${cells}</tr>`;
+  }).join("");
+}
+
+async function savePayoutRates() {
+  const msg = document.getElementById("payout-rate-msg");
+  const bands = ["2500", "2100-2400"];
+  const weeks = ["週5", "週4", "週3", "週2"];
+  const rates = [];
+
+  bands.forEach(band => {
+    weeks.forEach(week => {
+      const input = document.getElementById(`payout-${band}-${week}`);
+      const val = input.value.trim();
+      if (val !== "") {
+        rates.push({ wage_band: band, week_label: week, rate: parseFloat(val) / 100 });
+      }
+    });
+  });
+
+  try {
+    const res = await fetch(`${BASE_URL}/staff/incentive_payout_rates`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+      body: JSON.stringify({ rates })
+    });
+    const data = await res.json();
+    if (data.error) { msg.style.color = "#d9534f"; msg.textContent = data.error; }
+    else {
+      msg.style.color = "#2eb872"; msg.textContent = "保存しました";
+      await loadPayoutRates();
+      await loadData();
+    }
+  } catch(e) { msg.style.color = "#d9534f"; msg.textContent = "通信エラー: " + e.message; }
 }
 
 async function saveIncentiveSettings() {

@@ -544,6 +544,46 @@
   </div>
 </div>
 
+<!-- FB内訳モーダル -->
+<div class="modal-overlay" id="fb-breakdown-modal">
+  <div class="modal">
+    <div class="modal-title" id="fb-breakdown-title">FB内訳</div>
+    <table style="width:100%;border-collapse:collapse">
+      <tbody id="fb-breakdown-modal-body"></tbody>
+    </table>
+    <div style="display:flex;justify-content:space-between;padding:12px 14px;border-top:2px solid #f0e4da;margin-top:8px;font-weight:700">
+      <span>合計</span>
+      <span id="fb-breakdown-modal-total" class="num"></span>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeFbBreakdownModal()">閉じる</button>
+    </div>
+  </div>
+</div>
+
+<!-- 勤怠ペナルティ補正モーダル -->
+<div class="modal-overlay" id="penalty-adjust-modal">
+  <div class="modal">
+    <div class="modal-title">勤怠ペナルティ補正</div>
+    <input type="hidden" id="penalty-adjust-staff-id">
+    <div class="form-group">
+      <label class="form-label">補正後の金額（マイナスはそのまま入力。例：-20000）</label>
+      <input class="form-input" type="number" id="penalty-adjust-amount">
+    </div>
+    <div class="form-group">
+      <label class="form-label">補正理由（任意）</label>
+      <input class="form-input" type="text" id="penalty-adjust-reason" placeholder="例：jinjer誤入力の訂正">
+    </div>
+    <div class="target-all-note">この金額が、自動計算結果を上書きする最終的なペナルティ額になります。</div>
+    <div class="modal-msg" id="penalty-adjust-msg"></div>
+    <div class="modal-btns">
+      <button class="action-btn delete" onclick="removePenaltyAdjust()">補正を解除（自動計算に戻す）</button>
+      <button class="btn-cancel" onclick="closePenaltyAdjustModal()">キャンセル</button>
+      <button class="btn-submit" id="penalty-adjust-submit" onclick="savePenaltyAdjust()">保存</button>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
 <script>
@@ -808,7 +848,7 @@ function renderTable() {
       <td class="num">${fmt(d.sales)}</td>
       <td class="num" style="color:#2eb872">${fmt(d.apo_amount)}</td>
       <td class="num">${d.cxl_amount > 0 ? '<span style="color:#d9534f">▲' + fmt(d.cxl_amount) + '</span>' : '-'}</td>
-      <td class="num" style="color:#5a9cf8">${d.fb_amount != 0 ? fmt(d.fb_amount) : '-'}</td>
+      <td class="num" style="color:#5a9cf8;cursor:pointer;text-decoration:underline" onclick="openFbBreakdownModal('${d.staff_id}')">${d.fb_amount != 0 ? fmt(d.fb_amount) : '-'}</td>
       <td class="num">${d.target_achieve > 0 ? fmt(d.target_achieve) : '-'}</td>
       <td class="num">${d.target_maintain > 0 ? fmt(d.target_maintain) : '-'}</td>
       <td>
@@ -967,6 +1007,108 @@ function openStatusDetail(type) {
 
 function closeStatusDetail() {
   document.getElementById("status-detail-modal").classList.remove("active");
+}
+
+// ============================================================
+// FB内訳モーダル
+// ============================================================
+function openFbBreakdownModal(staffId) {
+  const d = allData.find(x => x.staff_id === staffId);
+  if (!d) return;
+
+  document.getElementById("fb-breakdown-title").textContent = `${d.name}　FB内訳`;
+  document.getElementById("fb-breakdown-modal").dataset.staffId = staffId;
+  const breakdown = d.fb_breakdown || [];
+  const tbody = document.getElementById("fb-breakdown-modal-body");
+
+  if (breakdown.length === 0) {
+    tbody.innerHTML = `<tr><td style="padding:14px;text-align:center;color:#c9a07a">対象のFBはありません</td></tr>`;
+  } else {
+    tbody.innerHTML = breakdown.map(item => {
+      const catCls = (item.category || "").includes("ペナルティ") ? "cat-penalty" : (item.category || "").includes("ボーナス") ? "cat-bonus" : "cat-default";
+      const countLabel = item.count != null ? `（${item.count}件）` : "";
+      const amountColor = item.amount < 0 ? "#d9534f" : "#2a2622";
+      const isPenalty = (item.category || "").includes("ペナルティ");
+      const fixBtn = isPenalty ? `<button class="action-btn" style="margin-left:8px" onclick="openPenaltyAdjustModal('${staffId}', ${item.amount})">補正</button>` : "";
+      return `<tr style="border-bottom:1px solid #f7eee5">
+        <td style="padding:10px 14px"><span class="cat-pill ${catCls}">${item.category || "その他"}</span> ${item.name || ""}${countLabel}${fixBtn}</td>
+        <td class="num" style="padding:10px 14px;text-align:right;color:${amountColor}">${fmt(item.amount)}</td>
+      </tr>`;
+    }).join("");
+  }
+
+  document.getElementById("fb-breakdown-modal-total").textContent = fmt(d.fb_amount);
+  document.getElementById("fb-breakdown-modal").classList.add("active");
+}
+
+function closeFbBreakdownModal() {
+  document.getElementById("fb-breakdown-modal").classList.remove("active");
+}
+
+// ============================================================
+// 勤怠ペナルティ補正
+// ============================================================
+function openPenaltyAdjustModal(staffId, currentAmount) {
+  document.getElementById("penalty-adjust-staff-id").value = staffId;
+  document.getElementById("penalty-adjust-amount").value = currentAmount;
+  document.getElementById("penalty-adjust-reason").value = "";
+  document.getElementById("penalty-adjust-msg").textContent = "";
+  document.getElementById("penalty-adjust-modal").classList.add("active");
+}
+function closePenaltyAdjustModal() {
+  document.getElementById("penalty-adjust-modal").classList.remove("active");
+}
+
+async function savePenaltyAdjust() {
+  const msg = document.getElementById("penalty-adjust-msg");
+  const btn = document.getElementById("penalty-adjust-submit");
+  const staffId = document.getElementById("penalty-adjust-staff-id").value;
+  const amount = document.getElementById("penalty-adjust-amount").value;
+  const reason = document.getElementById("penalty-adjust-reason").value.trim();
+  const month = document.getElementById("month-select").value;
+
+  if (amount === "" || isNaN(amount)) {
+    msg.style.color = "#d9534f"; msg.textContent = "金額を入力してください";
+    return;
+  }
+  btn.disabled = true;
+  try {
+    const res = await fetch(`${BASE_URL}/staff/penalty_adjustments`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+      body: JSON.stringify({ staff_id: staffId, month: month, amount: parseInt(amount), reason: reason })
+    });
+    const data = await res.json();
+    if (data.error) { msg.style.color = "#d9534f"; msg.textContent = data.error; }
+    else {
+      msg.style.color = "#2eb872"; msg.textContent = "保存しました";
+      await loadData();
+      setTimeout(() => {
+        closePenaltyAdjustModal();
+        openFbBreakdownModal(staffId);
+      }, 600);
+    }
+  } catch(e) { msg.style.color = "#d9534f"; msg.textContent = "通信エラー: " + e.message; }
+  finally { btn.disabled = false; }
+}
+
+async function removePenaltyAdjust() {
+  const staffId = document.getElementById("penalty-adjust-staff-id").value;
+  const month = document.getElementById("month-select").value;
+  if (!confirm("補正を解除し、自動計算結果に戻します。よろしいですか？")) return;
+  try {
+    const res = await fetch(`${BASE_URL}/staff/penalty_adjustments/${staffId}?month=${month}`, {
+      method: "DELETE",
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+    const data = await res.json();
+    if (data.error) alert("エラー: " + data.error);
+    else {
+      await loadData();
+      closePenaltyAdjustModal();
+      openFbBreakdownModal(staffId);
+    }
+  } catch(e) { alert("通信エラー: " + e.message); }
 }
 
 function sortTable(key) {

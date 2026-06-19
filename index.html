@@ -14,6 +14,16 @@
   .logo-badge { display: inline-flex; flex-direction: column; line-height: 1.1; }
   .logo-badge .main-text { font-family: 'Montserrat', 'Helvetica Neue', Arial, sans-serif; font-size: 22px; font-weight: 700; letter-spacing: 0.5px; color: #005bac; }
   .logo-badge .company-type { font-size: 10px; color: #8a7a6d; font-weight: 400; margin-top: 1px; }
+
+  /* ローディングモーダル */
+  .loading-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(42,38,34,0.55); z-index: 9999; align-items: center; justify-content: center; }
+  .loading-overlay.active { display: flex; }
+  .loading-card { background: #fff; border-radius: 16px; padding: 40px 48px; display: flex; flex-direction: column; align-items: center; gap: 20px; min-width: 280px; box-shadow: 0 8px 32px rgba(0,0,0,0.12); }
+  .loading-logo .main-text { font-size: 28px; }
+  .loading-label { font-size: 14px; color: #8a7a6d; font-weight: 500; }
+  .loading-pct { font-size: 28px; font-weight: 800; color: #2a2622; font-variant-numeric: tabular-nums; }
+  .loading-bar-bg { width: 220px; height: 8px; background: #f0e4da; border-radius: 4px; overflow: hidden; }
+  .loading-bar-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, #e8a87c, #d97a3f); transition: width 0.3s ease; }
   .header-divider { width: 1px; height: 20px; background: #f0e4da; }
   .header-controls { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; flex: 1; }
   .header-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
@@ -767,6 +777,7 @@ async function registerStaff() {
   const btn = document.getElementById("reg-submit");
   const msg = document.getElementById("reg-msg");
   btn.disabled = true;
+  showLoading("スタッフ登録中...");
   try {
     const res = await fetch(`${BASE_URL}/staff/register`, {
       method: "POST",
@@ -781,7 +792,7 @@ async function registerStaff() {
     if (data.error) { msg.style.color = "#d9534f"; msg.textContent = data.error; }
     else { msg.style.color = "#2eb872"; msg.textContent = "登録完了しました"; setTimeout(closeRegisterModal, 1500); }
   } catch(e) { msg.style.color = "#d9534f"; msg.textContent = "通信エラー"; }
-  finally { btn.disabled = false; }
+  finally { btn.disabled = false; hideLoading(); }
 }
 
 // ============================================================
@@ -827,6 +838,7 @@ async function resetStaffPassword() {
   }
   if (!confirm("このスタッフのパスワードを初期パスワードにリセットします。よろしいですか？")) return;
   btn.disabled = true;
+  showLoading("パスワードをリセット中...");
   try {
     const res = await fetch(`${BASE_URL}/staff/admin_reset_password`, {
       method: "POST",
@@ -837,7 +849,7 @@ async function resetStaffPassword() {
     if (data.error) { msg.style.color = "#d9534f"; msg.textContent = data.error; }
     else { msg.style.color = "#2eb872"; msg.textContent = "リセット完了しました"; setTimeout(closeResetPasswordModal, 1500); }
   } catch(e) { msg.style.color = "#d9534f"; msg.textContent = "通信エラー"; }
-  finally { btn.disabled = false; }
+  finally { btn.disabled = false; hideLoading(); }
 }
 
 // ============================================================
@@ -847,6 +859,7 @@ async function loadData() {
   const month = document.getElementById("month-select").value;
   document.getElementById("loading").style.display = "block";
   document.getElementById("main-table").style.display = "none";
+  showLoading("データを読み込み中...");
   try {
     const res = await fetch(`${BASE_URL}/staff/summary?month=${month}`);
     const data = await res.json();
@@ -856,6 +869,8 @@ async function loadData() {
     await updateConfirmButtonStates();
   } catch(e) {
     document.getElementById("loading").textContent = "読み込みエラー: " + e.message;
+  } finally {
+    hideLoading();
   }
 }
 
@@ -1045,6 +1060,7 @@ async function confirmMonth() {
   if (!confirm(`${month} の目標値を確定します。\n以降、jinjer実績の出勤日数が目標値計算に使われます。\n\n実行しますか？`)) return;
   const btn = document.getElementById("target-confirm-btn");
   btn.disabled = true; btn.textContent = "確定処理中...";
+  showLoading("目標値確定中...");
   try {
     const res = await fetch(`${BASE_URL}/staff/confirm_month`, {
       method: "POST",
@@ -1055,7 +1071,7 @@ async function confirmMonth() {
     if (data.error) alert("エラー: " + data.error);
     else { alert(data.message || "確定しました"); await loadData(); }
   } catch(e) { alert("通信エラー: " + e.message); }
-  finally { btn.disabled = false; btn.textContent = "①目標値確定"; }
+  finally { btn.disabled = false; btn.textContent = "①目標値確定"; hideLoading(); }
 }
 
 async function unconfirmMonth() {
@@ -1063,6 +1079,7 @@ async function unconfirmMonth() {
   if (!confirm(`${month} の目標値確定を解除します。\n時給確定が済んでいる場合は先に時給確定を解除してください。\n\n実行しますか？`)) return;
   const btn = document.getElementById("target-unconfirm-btn");
   btn.disabled = true;
+  showLoading("目標値確定を解除中...");
   try {
     const res = await fetch(`${BASE_URL}/staff/unconfirm_month`, {
       method: "POST",
@@ -1073,7 +1090,7 @@ async function unconfirmMonth() {
     if (data.error) alert("エラー: " + data.error);
     else { alert(data.message || "解除しました"); await loadData(); }
   } catch(e) { alert("通信エラー: " + e.message); }
-  finally { btn.disabled = false; }
+  finally { btn.disabled = false; hideLoading(); }
 }
 
 async function confirmWage() {
@@ -1081,6 +1098,7 @@ async function confirmWage() {
   if (!confirm(`${month} の確定時給を確定します。\n①目標値確定が済んでいない場合は実行できません。\n\n実行しますか？`)) return;
   const btn = document.getElementById("wage-confirm-btn");
   btn.disabled = true; btn.textContent = "確定処理中...";
+  showLoading("時給確定中...");
   try {
     const res = await fetch(`${BASE_URL}/staff/confirm_wage`, {
       method: "POST",
@@ -1091,7 +1109,7 @@ async function confirmWage() {
     if (data.error) alert("エラー: " + data.error);
     else { alert(data.message || "確定しました"); await loadData(); }
   } catch(e) { alert("通信エラー: " + e.message); }
-  finally { btn.disabled = false; btn.textContent = "②時給確定"; }
+  finally { btn.disabled = false; btn.textContent = "②時給確定"; hideLoading(); }
 }
 
 async function unconfirmWage() {
@@ -1099,6 +1117,7 @@ async function unconfirmWage() {
   if (!confirm(`${month} の時給確定を解除します。よろしいですか？`)) return;
   const btn = document.getElementById("wage-unconfirm-btn");
   btn.disabled = true;
+  showLoading("時給確定を解除中...");
   try {
     const res = await fetch(`${BASE_URL}/staff/unconfirm_wage`, {
       method: "POST",
@@ -1109,16 +1128,20 @@ async function unconfirmWage() {
     if (data.error) alert("エラー: " + data.error);
     else { alert(data.message || "解除しました"); await loadData(); }
   } catch(e) { alert("通信エラー: " + e.message); }
-  finally { btn.disabled = false; }
+  finally { btn.disabled = false; hideLoading(); }
 }
 
 function exportIncentivePayout() {
   const month = document.getElementById("month-select").value;
+  showLoading("Excel出力中...");
+  setTimeout(hideLoading, 3000);
   window.open(`${BASE_URL}/staff/export/incentive_payout?month=${month}&token=${token}`, "_blank");
 }
 
 function exportConfirmedWage() {
   const month = document.getElementById("month-select").value;
+  showLoading("Excel出力中...");
+  setTimeout(hideLoading, 3000);
   window.open(`${BASE_URL}/staff/export/confirmed_wage?month=${month}&token=${token}`, "_blank");
 }
 
@@ -1307,7 +1330,7 @@ async function savePenaltyAdjust() {
       }, 600);
     }
   } catch(e) { msg.style.color = "#d9534f"; msg.textContent = "通信エラー: " + e.message; }
-  finally { btn.disabled = false; }
+  finally { btn.disabled = false; hideLoading(); }
 }
 
 async function removePenaltyAdjust() {
@@ -1389,6 +1412,7 @@ async function submitBulkPlanned() {
   }
 
   btn.disabled = true;
+  showLoading("出勤予定数を登録中...");
   try {
     const res = await fetch(`${BASE_URL}/staff/target/bulk`, {
       method: "POST",
@@ -1409,7 +1433,7 @@ async function submitBulkPlanned() {
       setTimeout(closeBulkPlannedModal, 1500);
     }
   } catch(e) { msg.style.color = "#d9534f"; msg.textContent = "通信エラー: " + e.message; }
-  finally { btn.disabled = false; }
+  finally { btn.disabled = false; hideLoading(); }
 }
 
 function sortTable(key) {
@@ -1801,6 +1825,7 @@ async function saveCampaign() {
 
   const payload = { name, category, calc_type: calcType, start_date: startDate, end_date: endDate, amount: parseInt(amount), target_types: targetTypes, target_project_ids: targetProjectIds, exclude_resend: excludeResend, target_staff_ids: targetStaffIds };
   btn.disabled = true;
+  showLoading("キャンペーン保存中...");
   try {
     const url = id ? `${BASE_URL}/staff/fb_campaigns/${id}` : `${BASE_URL}/staff/fb_campaigns`;
     const method = id ? "PUT" : "POST";
@@ -1809,7 +1834,7 @@ async function saveCampaign() {
     if (data.error) { msg.style.color = "#d9534f"; msg.textContent = data.error; }
     else { msg.style.color = "#2eb872"; msg.textContent = "保存しました"; await loadCampaigns(); await loadData(); setTimeout(closeCampaignModal, 800); }
   } catch(e) { msg.style.color = "#d9534f"; msg.textContent = "通信エラー: " + e.message; }
-  finally { btn.disabled = false; }
+  finally { btn.disabled = false; hideLoading(); }
 }
 
 async function deleteCampaign(id) {
@@ -2024,7 +2049,8 @@ async function uploadIncentivePayroll() {
 async function uploadAll() {
   const btn = document.getElementById("update-btn");
   const msg = document.getElementById("status-msg");
-  btn.disabled = true; msg.textContent = "アップロード中...";
+  btn.disabled = true;
+  showLoading("データ更新中...");
   try {
     const apoFile = document.getElementById("apo-file").files[0];
     const prodFile = document.getElementById("prod-file").files[0];
@@ -2035,7 +2061,7 @@ async function uploadAll() {
     msg.textContent = "✅ 更新完了";
     await loadData();
   } catch(e) { msg.textContent = "❌ エラー: " + e.message; }
-  finally { btn.disabled = false; }
+  finally { btn.disabled = false; hideLoading(); }
 }
 
 async function uploadApo(file) {
@@ -2316,6 +2342,55 @@ function clearFile(prefix) {
   nameEl.textContent = "未選択";
 }
 loadData();
+</script>
+
+<!-- ローディングモーダル -->
+<div class="loading-overlay" id="loading-overlay">
+  <div class="loading-card">
+    <div class="logo-badge loading-logo">
+      <span class="main-text">DGLOSS</span>
+      <span class="company-type">株式会社ディグロス</span>
+    </div>
+    <div class="loading-label" id="loading-label">読み込み中...</div>
+    <div class="loading-pct" id="loading-pct">0%</div>
+    <div class="loading-bar-bg">
+      <div class="loading-bar-fill" id="loading-bar-fill" style="width:0%"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// グローバルローディング制御
+// ============================================================
+let _loadingTimer = null;
+let _loadingPct = 0;
+
+function showLoading(label) {
+  document.getElementById("loading-label").textContent = label || "読み込み中...";
+  document.getElementById("loading-pct").textContent = "0%";
+  document.getElementById("loading-bar-fill").style.width = "0%";
+  document.getElementById("loading-overlay").classList.add("active");
+  _loadingPct = 0;
+  _loadingTimer = setInterval(() => {
+    const remaining = 95 - _loadingPct;
+    _loadingPct += remaining * 0.08;
+    if (_loadingPct > 95) _loadingPct = 95;
+    const pct = Math.round(_loadingPct);
+    document.getElementById("loading-pct").textContent = pct + "%";
+    document.getElementById("loading-bar-fill").style.width = pct + "%";
+  }, 200);
+}
+
+function hideLoading() {
+  clearInterval(_loadingTimer);
+  document.getElementById("loading-pct").textContent = "100%";
+  document.getElementById("loading-bar-fill").style.width = "100%";
+  setTimeout(() => {
+    document.getElementById("loading-overlay").classList.remove("active");
+    _loadingPct = 0;
+  }, 300);
+}
 </script>
 </body>
 </html>

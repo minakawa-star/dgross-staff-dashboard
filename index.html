@@ -219,6 +219,21 @@
 </head>
 <body>
 
+<!-- ローディングモーダル（bodyの先頭に配置） -->
+<div class="loading-overlay" id="loading-overlay">
+  <div class="loading-card">
+    <div class="logo-badge loading-logo">
+      <span class="main-text">DGLOSS</span>
+      <span class="company-type">株式会社ディグロス</span>
+    </div>
+    <div class="loading-label" id="loading-label">読み込み中...</div>
+    <div class="loading-pct" id="loading-pct">0%</div>
+    <div class="loading-bar-bg">
+      <div class="loading-bar-fill" id="loading-bar-fill" style="width:0%"></div>
+    </div>
+  </div>
+</div>
+
 <div class="header">
   <div class="logo-badge"><div class="logo-badge"><span class="main-text">DGLOSS</span><span class="company-type">株式会社ディグロス</span></div></div>
   <div class="header-title">PT事業部 実績管理</div>
@@ -715,6 +730,38 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
 <script>
+// ============================================================
+// グローバルローディング制御（最初に定義）
+// ============================================================
+let _loadingTimer = null;
+let _loadingPct = 0;
+
+function showLoading(label) {
+  document.getElementById("loading-label").textContent = label || "読み込み中...";
+  document.getElementById("loading-pct").textContent = "0%";
+  document.getElementById("loading-bar-fill").style.width = "0%";
+  document.getElementById("loading-overlay").classList.add("active");
+  _loadingPct = 0;
+  _loadingTimer = setInterval(() => {
+    const remaining = 95 - _loadingPct;
+    _loadingPct += remaining * 0.08;
+    if (_loadingPct > 95) _loadingPct = 95;
+    const pct = Math.round(_loadingPct);
+    document.getElementById("loading-pct").textContent = pct + "%";
+    document.getElementById("loading-bar-fill").style.width = pct + "%";
+  }, 200);
+}
+
+function hideLoading() {
+  clearInterval(_loadingTimer);
+  document.getElementById("loading-pct").textContent = "100%";
+  document.getElementById("loading-bar-fill").style.width = "100%";
+  setTimeout(() => {
+    document.getElementById("loading-overlay").classList.remove("active");
+    _loadingPct = 0;
+  }, 300);
+}
+
 const BASE_URL = "https://digross-server.onrender.com";
 let allData = [];
 let sortKey = "achieve_rate";
@@ -2342,55 +2389,6 @@ function clearFile(prefix) {
   nameEl.textContent = "未選択";
 }
 loadData();
-</script>
-
-<!-- ローディングモーダル -->
-<div class="loading-overlay" id="loading-overlay">
-  <div class="loading-card">
-    <div class="logo-badge loading-logo">
-      <span class="main-text">DGLOSS</span>
-      <span class="company-type">株式会社ディグロス</span>
-    </div>
-    <div class="loading-label" id="loading-label">読み込み中...</div>
-    <div class="loading-pct" id="loading-pct">0%</div>
-    <div class="loading-bar-bg">
-      <div class="loading-bar-fill" id="loading-bar-fill" style="width:0%"></div>
-    </div>
-  </div>
-</div>
-
-<script>
-// ============================================================
-// グローバルローディング制御
-// ============================================================
-let _loadingTimer = null;
-let _loadingPct = 0;
-
-function showLoading(label) {
-  document.getElementById("loading-label").textContent = label || "読み込み中...";
-  document.getElementById("loading-pct").textContent = "0%";
-  document.getElementById("loading-bar-fill").style.width = "0%";
-  document.getElementById("loading-overlay").classList.add("active");
-  _loadingPct = 0;
-  _loadingTimer = setInterval(() => {
-    const remaining = 95 - _loadingPct;
-    _loadingPct += remaining * 0.08;
-    if (_loadingPct > 95) _loadingPct = 95;
-    const pct = Math.round(_loadingPct);
-    document.getElementById("loading-pct").textContent = pct + "%";
-    document.getElementById("loading-bar-fill").style.width = pct + "%";
-  }, 200);
-}
-
-function hideLoading() {
-  clearInterval(_loadingTimer);
-  document.getElementById("loading-pct").textContent = "100%";
-  document.getElementById("loading-bar-fill").style.width = "100%";
-  setTimeout(() => {
-    document.getElementById("loading-overlay").classList.remove("active");
-    _loadingPct = 0;
-  }, 300);
-}
 </script>
 </body>
 </html>

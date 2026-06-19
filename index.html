@@ -318,6 +318,7 @@
     <div class="confirm-step-btns">
       <button class="confirm-btn" onclick="exportIncentivePayout()">📥 インセンティブ支給額</button>
       <button class="confirm-btn" onclick="exportConfirmedWage()">📥 確定時給</button>
+      <button class="confirm-btn" onclick="exportFbCampaignDetail()">📥 FBキャンペーン詳細</button>
     </div>
   </div>
 </div>
@@ -1190,6 +1191,13 @@ function exportConfirmedWage() {
   showLoading("Excel出力中...");
   setTimeout(hideLoading, 3000);
   window.open(`${BASE_URL}/staff/export/confirmed_wage?month=${month}&token=${token}`, "_blank");
+}
+
+function exportFbCampaignDetail() {
+  const month = document.getElementById("month-select").value;
+  showLoading("Excel出力中...");
+  setTimeout(hideLoading, 3000);
+  window.open(`${BASE_URL}/staff/export/fb_campaign_detail?month=${month}&token=${token}`, "_blank");
 }
 
 function renderSummary(data) {
